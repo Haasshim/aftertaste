@@ -62,10 +62,49 @@ App runs at `http://localhost:3000`
 
 **Test credentials:** `test@aftertaste.com` / `taste123`
 
-## Roadmap
+## Demo
 
-- Swiggy MCP integration for live restaurant & menu data across India
-- Cloud sync across devices
-- Social sharing of dish logs
-- Dish recommendations based on rating history
-- Google Sign-In
+https://github.com/user-attachments/assets/aftertaste-demo
+
+## Future Improvements
+
+### 1. AI-Powered Tasting Notes (Claude API)
+
+Integrate the Claude API to generate personalised tasting notes on the dish logging screen. When a user has rated a dish and selected stamps, a "Suggest with AI" button would call Claude with the dish name, restaurant, rating, and selected tags as context — returning a 2–3 sentence first-person tasting note that the user can edit before saving. This directly solves the blank-page problem when writing notes and makes every log entry richer with zero effort.
+
+**Implementation path:** Add `@anthropic-ai/sdk` as a dependency, create a `src/utils/ai.js` utility with a `suggestTastingNote()` function using `claude-opus-4-7`, and wire a suggestion button into `AddDishLogScreen.jsx` below the comments textarea. The API key would be stored in a `.env` file as `VITE_ANTHROPIC_API_KEY`.
+
+---
+
+### 2. Live Restaurant & Menu Data (Swiggy MCP)
+
+The current dataset is a static list of 8 Chennai restaurants hardcoded in `src/data/restaurants.js`. This limits the app to a single city and quickly becomes outdated. Integrating Swiggy's food MCP would replace the static file with live API queries, unlocking:
+
+- **Real-time restaurant search** across all Indian cities instead of a fixed local list
+- **Up-to-date menus** with actual dish names, categories, and prices fetched on demand
+- **Location-aware discovery** — surface nearby open restaurants automatically
+- **Enriched dish metadata** — dietary tags, cuisine type, and community ratings alongside the user's personal rating
+
+**Implementation path:** The integration is surgical — swap `restaurants.js` with async MCP calls in `SearchRestaurantScreen.jsx` and `RestaurantDetailScreen.jsx`. The existing log structure already stores `restaurantId` and `dishId` as keys, so every past log remains mappable to Swiggy's catalog.
+
+---
+
+### 3. Cloud Sync & Multi-Device Support
+
+All data currently lives in the browser's IndexedDB, meaning logs are tied to a single device and lost if the browser is cleared. A lightweight backend (or a BaaS like Supabase/Firebase) would sync logs across devices and enable:
+
+- Cross-device access to the full journal
+- Backup and restore
+- Google Sign-In (button is already present in the UI, marked "Coming Soon")
+
+---
+
+### 4. Social Sharing
+
+Allow users to share a dish log card — a styled image with the dish name, restaurant, rating badge, stamps, and tasting note — directly to Instagram Stories or WhatsApp.
+
+---
+
+### 5. Dish Recommendations
+
+Analyse the user's rating history to surface personalised suggestions: "You love spicy South Indian food rated 8+ — here are dishes you haven't tried yet at restaurants you've visited."
