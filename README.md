@@ -2,21 +2,25 @@
 
 **Remember every bite.**
 
-Aftertaste is a personal food journaling app that lets you log, rate, and rediscover the dishes you've eaten at restaurants — so you never forget what you had or how it tasted.
+Aftertaste is a personal food journaling app that lets you log, rate, and rediscover the dishes you've eaten at restaurants. This is so that you never forget what you had or how it tasted.
 
 ## The Problem
 
-When dining out in India, there's no good way to remember what you ordered, how it tasted, or whether you'd get it again. Most people end up scribbling notes in their phone's notes app, losing context over time. Aftertaste fixes that.
+When dining out in India, there was no good way for me to remember what I ordered, how it tasted, or whether it was good or not. I ended up scribbling reviews in my notes app, and forgetting to update it. Aftertaste fixes that. 
+
+## Repo
+
+This is a mockup demo of how I would want the this app to be and feel like and is not a finalized version. Using AI tools, I was able to make this mockup for the application in less than a week and requires multiple refinements for which Swiggy's MCP would be the start. 
 
 ## Features
 
-- **Dish Logging** — Search for a restaurant, pick a dish, and log your experience in seconds
-- **10-Point Rating System** — Rate dishes from "Disappointing" to "Outstanding" with visual feedback
-- **Stamps / Tags** — Quick-tag dishes as Must Try, Will Try Again, Comfort Food, Spice Bomb, Do Not Order, and more
-- **Rich Attachments** — Add photos, record voice notes, and save links to a dish entry
-- **Comments** — Write freeform tasting notes
-- **Your Journal** — Browse all your past logs with restaurant, dish, rating, and tags at a glance
-- **Restaurant Search** — Filter restaurants by name, location, or cuisine type
+- **Dish Logging** - Search for a restaurant, pick a dish, and log your experience in seconds
+- **10-Point Rating System** - Rate dishes from "Disappointing" to "Outstanding" with visual feedback
+- **Stamps / Tags** - Quick-tag dishes as Must Try, Will Try Again, Comfort Food, Spice Bomb, Do Not Order, and more
+- **Rich Attachments** - Add photos, record voice notes, and save links to a dish entry
+- **Comments** - Write freeform tasting notes
+- **Your Journal** - Browse all your past logs with restaurant, dish, rating, and tags at a glance
+- **Restaurant Search** - Filter restaurants by name, location, or cuisine type
 
 ## Tech Stack
 
@@ -68,22 +72,20 @@ https://github.com/user-attachments/assets/aftertaste-demo
 
 ## Future Improvements
 
-### 1. AI-Powered Tasting Notes (Claude API)
+### 1. UI
 
-Integrate the Claude API to generate personalised tasting notes on the dish logging screen. When a user has rated a dish and selected stamps, a "Suggest with AI" button would call Claude with the dish name, restaurant, rating, and selected tags as context — returning a 2–3 sentence first-person tasting note that the user can edit before saving. This directly solves the blank-page problem when writing notes and makes every log entry richer with zero effort.
-
-**Implementation path:** Add `@anthropic-ai/sdk` as a dependency, create a `src/utils/ai.js` utility with a `suggestTastingNote()` function using `claude-opus-4-7`, and wire a suggestion button into `AddDishLogScreen.jsx` below the comments textarea. The API key would be stored in a `.env` file as `VITE_ANTHROPIC_API_KEY`.
+The current UI is user friendly and basic and I would want to make it visually better, add more pages and features to make the entire flow robust. A more sleek look to ensure there is a cleaner flow for the user and integrating features like dark mode, paginations, placeholder animations,editing logs, sort logs, add unlisted dishes, log history based on restaurrants, and a logo.
 
 ---
 
 ### 2. Live Restaurant & Menu Data (Swiggy MCP)
 
-The current dataset is a static list of 8 Chennai restaurants hardcoded in `src/data/restaurants.js`. This limits the app to a single city and quickly becomes outdated. Integrating Swiggy's food MCP would replace the static file with live API queries, unlocking:
+The current dataset is a static list of Chennai restaurants hardcoded in `src/data/restaurants.js`. This limits the app to a single city and quickly becomes outdated. Integrating Swiggy's food MCP would replace the static file with live API queries, unlocking:
 
 - **Real-time restaurant search** across all Indian cities instead of a fixed local list
 - **Up-to-date menus** with actual dish names, categories, and prices fetched on demand
-- **Location-aware discovery** — surface nearby open restaurants automatically
-- **Enriched dish metadata** — dietary tags, cuisine type, and community ratings alongside the user's personal rating
+- **Location-aware discovery** - surface nearby open restaurants automatically
+- **Enriched dish metadata** - dietary tags, cuisine type, and community ratings alongside the user's personal rating
 
 **Implementation path:** The integration is surgical — swap `restaurants.js` with async MCP calls in `SearchRestaurantScreen.jsx` and `RestaurantDetailScreen.jsx`. The existing log structure already stores `restaurantId` and `dishId` as keys, so every past log remains mappable to Swiggy's catalog.
 
@@ -95,7 +97,7 @@ All data currently lives in the browser's IndexedDB, meaning logs are tied to a 
 
 - Cross-device access to the full journal
 - Backup and restore
-- Google Sign-In (button is already present in the UI, marked "Coming Soon")
+- Google Sign-In
 
 ---
 
