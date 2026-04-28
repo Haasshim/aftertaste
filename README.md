@@ -77,8 +77,22 @@ https://github.com/user-attachments/assets/aftertaste-demo
 The current UI is user friendly and basic and I would want to make it visually better, add more pages and features to make the entire flow robust. A more sleek look to ensure there is a cleaner flow for the user and integrating features like dark mode, paginations, placeholder animations,editing logs, sort logs, add unlisted dishes, log history based on restaurrants, and a logo.
 
 ---
+### 2. Security
 
-### 2. Live Restaurant & Menu Data (Swiggy MCP)
+Currently, everything is stored as plain text in IndexedDB. Anyone who opens DevTools on your browser, or has physical access to your machine, can read every entry in seconds. There is also no real authentication and the credentials are hardcoded in the source code. 
+- **Authentication** - JWT access tokens (15min, stored in memory) + refresh tokens (30 days, HttpOnly cookie) to prevent XSS token theft
+- **Password Storage** - All passwords hashed with bcrypt (work factor 12) before hitting the database, never stored in plain text
+- **Data in Transit** - HTTPS enforced on all routes with HSTS header to block man-in-the-middle attacks
+- **Data at Rest** - Sensitive fields encrypted with AES-256-GCM at the application layer before writing to the database
+- **Disk Encryption** - Full-disk encryption enabled at the database server level as a second layer
+- **Rate Limiting** - Auth endpoints capped at 5 attempts per IP per 15 minutes to block brute-force attacks
+- **Input Validation** - All incoming data validated against a strict schema (Zod/Joi) before touching the database
+- **SQL Injection Prevention** - Parameterised queries or ORM (Prisma) used throughout, no raw string concatenation
+- **CORS Policy** - Restricted to the production frontend domain only, no wildcard origins
+- **Authorisation** - Every API route verifies the requesting user owns the resource via userId match before returning data
+- **Secrets Management** - No keys or credentials committed to the repo, all secrets managed through environment variables and a secrets manager
+
+### 3. Live Restaurant & Menu Data (Swiggy MCP)
 
 The current dataset is a static list of Chennai restaurants hardcoded in `src/data/restaurants.js`. This limits the app to a single city and quickly becomes outdated. Integrating Swiggy's food MCP would replace the static file with live API queries, unlocking:
 
@@ -91,7 +105,7 @@ The current dataset is a static list of Chennai restaurants hardcoded in `src/da
 
 ---
 
-### 3. Cloud Sync & Multi-Device Support
+### 4. Cloud Sync & Multi-Device Support
 
 All data currently lives in the browser's IndexedDB, meaning logs are tied to a single device and lost if the browser is cleared. A lightweight backend (or a BaaS like Supabase/Firebase) would sync logs across devices and enable:
 
@@ -101,12 +115,12 @@ All data currently lives in the browser's IndexedDB, meaning logs are tied to a 
 
 ---
 
-### 4. Social Sharing
+### 5. Social Sharing
 
 Allow users to share a dish log card — a styled image with the dish name, restaurant, rating badge, stamps, and tasting note — directly to Instagram Stories or WhatsApp.
 
 ---
 
-### 5. Dish Recommendations
+### 6. Dish Recommendations
 
 Analyse the user's rating history to surface personalised suggestions: "You love spicy South Indian food rated 8+ — here are dishes you haven't tried yet at restaurants you've visited."
