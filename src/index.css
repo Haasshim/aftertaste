@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400&display=swap');
+
+:root {
+  --brg: #004225;
+  --brg-light: #E8F0EB;
+  --brg-20: rgba(0, 66, 37, 0.2);
+  --white: #FFFFFF;
+  --off-white: #F8F8F6;
+  --cream: #FFF8F0;
+  --dark: #1A1A1A;
+  --gray: #6B6B6B;
+  --light-gray: #E0E0E0;
+  --medium-gray: #9E9E9E;
+  --gold: #D4A843;
+  --red: #C0392B;
+  --orange: #E67E22;
+  --green: #27AE60;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0a0a0a;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  max-width: 430px;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: var(--off-white);
+  box-shadow: 0 0 60px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 430px) {
+  #root {
+    max-width: 100%;
+    box-shadow: none;
+  }
+}
+
+input, textarea {
+  font-family: inherit;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+}
