@@ -71,10 +71,6 @@ App runs at `http://localhost:3000`
 
 **Test credentials:** `test@aftertaste.com` / `taste123`
 
-## Demo
-
-https://github.com/user-attachments/assets/aftertaste-demo
-
 ## Future Improvements
 
 ### 1. UI
