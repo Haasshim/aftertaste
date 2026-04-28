@@ -57,6 +57,9 @@ src/
 
 All data is stored client-side in IndexedDB via LocalForage. No backend required.
 
+## Changes to be done
+The most impactful change would be moving from LocalForage to a proper backend database like PostgreSQL with a lightweight Node.js or Express API layer, which would enable data persistence across devices and browsers instead of being locked to a single browser's storage. On the authentication side, replacing the hardcoded credentials with a real auth system like Supabase or Firebase Auth would give users secure, account-based access with Google Sign-In which is already stubbed in the UI. For media storage, specifically photos and voice notes are currently saved as raw base64 blobs directly in IndexedDB which bloats storage fast. Moving these to an object storage service like AWS S3 or Cloudflare R2 would make the app significantly faster and more scalable. Long term, adding end-to-end encryption on journal entries before they leave the device would make Aftertaste genuinely private, meaning even the server never sees your unencrypted dining history.
+
 ## Getting Started
 
 ```bash
