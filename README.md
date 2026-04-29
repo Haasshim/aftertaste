@@ -71,6 +71,8 @@ App runs at `http://localhost:3000`
 
 **Test credentials:** `test@aftertaste.com` / `taste123`
 
+Access the demo video named **Aftertaste Demo.mp4** for a better understanding of the entire flow.
+
 ## Future Improvements
 
 ### 1. UI
