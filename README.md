@@ -1,55 +1,87 @@
 # Aftertaste
 
-**Remember every bite.**
+Remember every bite.
 
-Aftertaste is a personal food journaling app that lets you log, rate, and rediscover the dishes you've eaten at restaurants — so you never forget what you had or how it tasted.
+Aftertaste is a personal food journaling app that lets you log, rate, and rediscover the dishes you have eaten at restaurants, so you never forget what you had or how it tasted.
 
 ## The Problem
 
-When dining out in India, there's no good way to remember what you ordered, how it tasted, or whether you'd get it again. Most people end up scribbling notes in their phone's notes app, losing context over time. Aftertaste fixes that.
+When dining out in India, there is no good way to remember what you ordered, how it tasted, or whether you would get it again. Most people end up scribbling notes in their phone's notes app and losing context over time. Aftertaste fixes that.
 
 ## Features
 
-- **Dish Logging** — Search for a restaurant, pick a dish, and log your experience in seconds
-- **10-Point Rating System** — Rate dishes from "Disappointing" to "Outstanding" with visual feedback
-- **Stamps / Tags** — Quick-tag dishes as Must Try, Will Try Again, Comfort Food, Spice Bomb, Do Not Order, and more
-- **Rich Attachments** — Add photos, record voice notes, and save links to a dish entry
-- **Comments** — Write freeform tasting notes
-- **Your Journal** — Browse all your past logs with restaurant, dish, rating, and tags at a glance
-- **Restaurant Search** — Filter restaurants by name, location, or cuisine type
+- Dish logging: search for a restaurant, pick or type a dish, and log your experience in seconds.
+- Multi-dimensional ratings: rate Taste, Ambience, and Service on a 1 to 10 scale. The overall score is the mean of the facets you rate.
+- Stamps and tags: quick-tag dishes as Must Try, Will Try Again, Comfort Food, Spice Bomb, Do Not Order, and more.
+- Rich attachments: add photos, record voice notes, and save links on a dish entry.
+- Comments: write freeform tasting notes.
+- Your journal: browse all of your past logs with restaurant, dish, rating, and tags at a glance.
+- Restaurant discovery: search the bundled catalog offline, or enable live Google Places search across India with location awareness.
+- Remembered dishes: dishes you have logged at a restaurant resurface as quick-pick chips next time you visit.
+- Accounts and privacy: real sign-in with per-user data isolation enforced at the database level.
+- Android app: packaged as an installable Android application through Capacitor.
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
 | Framework | React 18 |
-| Build Tool | Vite 5 |
+| Build tool | Vite 5 |
 | Routing | React Router DOM 6 (HashRouter) |
-| Storage | LocalForage (IndexedDB) |
+| Auth | Supabase Auth |
+| Database | Supabase Postgres with Row-Level Security |
+| File storage | Supabase Storage (private bucket) |
+| Discovery | Google Places via Supabase Edge Functions |
+| Local fallback | LocalForage (IndexedDB) when no backend is configured |
 | Media | MediaRecorder API (voice notes), File API (photos) |
-| Fonts | Playfair Display (Google Fonts) |
+| Native shell | Capacitor (Android) |
+| Fonts | Playfair Display |
+
+## How It Works
+
+The app runs in two modes:
+
+- Local mode (no configuration): data stays in the browser via LocalForage. Useful for quick development. Sign-in creates a local guest session.
+- Cloud mode (Supabase configured): real accounts, Row-Level Security, file storage, and optional Google Places discovery.
+
+Security model:
+
+- Only the Supabase URL and publishable (anon) key ship in the frontend. They are safe because Row-Level Security gates every query, so the key grants no access without a valid session and a matching policy.
+- Secrets such as the Google Places API key live only in Edge Functions and never reach the browser.
+- Restaurant discovery and photo loading go through JWT-verified Edge Functions. Place photos are proxied so the Google key is never exposed to the client.
+
+See SETUP.md for provisioning and SECURITY.md for the full security model.
 
 ## Architecture
 
 ```
 src/
-├── App.jsx                      # Root router
-├── screens/
-│   ├── SplashScreen.jsx         # Animated intro
-│   ├── LoginScreen.jsx          # Auth entry
-│   ├── HomeScreen.jsx           # Journal feed
-│   ├── SearchRestaurantScreen.jsx  # Restaurant discovery
-│   ├── RestaurantDetailScreen.jsx  # Menu & dishes
-│   ├── AddDishLogScreen.jsx     # Log new entry (rating, stamps, media)
-│   └── DishDetailScreen.jsx     # View full log entry
-├── data/
-│   └── restaurants.js           # Restaurant & dish dataset
-└── utils/
-    ├── constants.js             # Stamps & rating labels
-    └── storage.js               # LocalForage CRUD operations
-```
+  App.jsx                          Root router with protected routes
+  context/AuthContext.jsx          Supabase auth session and role
+  components/                      Icon set, RatingInput, ErrorBoundary, etc.
+  screens/
+    SplashScreen.jsx               Animated intro and session routing
+    LoginScreen.jsx                Sign in
+    SignupScreen.jsx               Create account
+    HomeScreen.jsx                 Journal feed
+    SearchRestaurantScreen.jsx     Restaurant discovery with location and GPS
+    RestaurantDetailScreen.jsx     Dishes, remembered dishes, custom dish entry
+    AddDishLogScreen.jsx           Log a new entry (rating, stamps, media)
+    DishDetailScreen.jsx           View a full log entry
+  lib/
+    supabase.js                    Supabase client
+    dataClient.js                  Unified data API with timeouts and retries
+    places.js                      Google Places discovery with static fallback
+    migrateLocalData.js            One-time local to cloud migration
+    errors.js                      Typed error model
+  data/restaurants.js              Bundled static catalog
+  utils/                           Stamps, rating labels, local storage
 
-All data is stored client-side in IndexedDB via LocalForage. No backend required.
+supabase/
+  migrations/                      Schema, Row-Level Security, storage policies
+  functions/places-search          Restaurant search and details proxy
+  functions/places-photo           Photo proxy (keeps the API key server-side)
+```
 
 ## Getting Started
 
@@ -58,56 +90,23 @@ npm install
 npm run dev
 ```
 
-App runs at `http://localhost:3000`
+The app runs at http://localhost:3000
 
-**Test credentials:** `test@aftertaste.com` / `taste123`
+To enable cloud mode and live restaurant search, follow SETUP.md to provision Supabase, apply the migrations, deploy the Edge Functions, and set the Google Places key.
 
-## Demo
+## Building the Android App
 
-https://github.com/user-attachments/assets/aftertaste-demo
+The Capacitor project is scaffolded under android/. In short:
+
+```bash
+npm run build
+npx cap sync android
+```
+
+Then open the android/ folder in Android Studio and run it on a connected device, or build an APK. Full steps are in SETUP.md.
 
 ## Future Improvements
 
-### 1. AI-Powered Tasting Notes (Claude API)
-
-Integrate the Claude API to generate personalised tasting notes on the dish logging screen. When a user has rated a dish and selected stamps, a "Suggest with AI" button would call Claude with the dish name, restaurant, rating, and selected tags as context — returning a 2–3 sentence first-person tasting note that the user can edit before saving. This directly solves the blank-page problem when writing notes and makes every log entry richer with zero effort.
-
-**Implementation path:** Add `@anthropic-ai/sdk` as a dependency, create a `src/utils/ai.js` utility with a `suggestTastingNote()` function using `claude-opus-4-7`, and wire a suggestion button into `AddDishLogScreen.jsx` below the comments textarea. The API key would be stored in a `.env` file as `VITE_ANTHROPIC_API_KEY`.
-
----
-
-### 2. Live Restaurant Data (Google Places) — implemented, optional
-
-The bundled dataset is a static list of Chennai restaurants in `src/data/restaurants.js`. With
-the **Google Places** integration enabled (`VITE_ENABLE_PLACES=true` + the `places-search` Edge
-Function deployed), restaurant search goes live across all of India:
-
-- **Real-time restaurant search** across any Indian city instead of a fixed local list
-- **Location-aware discovery** — type an area/city or tap **Use GPS** to bias results nearby
-- **Server-held API key** — the Google key lives only in the Edge Function, never in the bundle
-
-Places does not expose menus, so a discovered restaurant has no dish list — you log a **custom
-dish name** on its page. The app falls back to the static catalog whenever the flag is off or a
-request fails. See [SETUP.md](SETUP.md) §3 for the Google Cloud + billing steps.
-
----
-
-### 3. Cloud Sync & Multi-Device Support
-
-All data currently lives in the browser's IndexedDB, meaning logs are tied to a single device and lost if the browser is cleared. A lightweight backend (or a BaaS like Supabase/Firebase) would sync logs across devices and enable:
-
-- Cross-device access to the full journal
-- Backup and restore
-- Google Sign-In (button is already present in the UI, marked "Coming Soon")
-
----
-
-### 4. Social Sharing
-
-Allow users to share a dish log card — a styled image with the dish name, restaurant, rating badge, stamps, and tasting note — directly to Instagram Stories or WhatsApp.
-
----
-
-### 5. Dish Recommendations
-
-Analyse the user's rating history to surface personalised suggestions: "You love spicy South Indian food rated 8+ — here are dishes you haven't tried yet at restaurants you've visited."
+- AI-assisted tasting notes: generate a draft tasting note from the dish, restaurant, rating, and stamps, which the user can edit before saving.
+- Social sharing: share a styled dish-log card to Instagram Stories or WhatsApp.
+- Dish recommendations: use rating history to suggest dishes the user has not tried at places they have visited.
