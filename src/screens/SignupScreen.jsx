@@ -4,30 +4,62 @@ import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/Spinner';
 import { colors, font, radius } from '../theme/theme';
 
-export default function LoginScreen() {
+export default function SignupScreen() {
   const navigate = useNavigate();
-  const { signIn, isLocalMode } = useAuth();
+  const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [confirmSent, setConfirmSent] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('Please enter your email and password.');
+      setError('Please enter an email and password.');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+    if (password !== confirm) {
+      setError('Passwords do not match.');
       return;
     }
     setBusy(true);
     setError('');
-    const { error: authError } = await signIn(email, password);
+    const { error: authError, needsConfirmation } = await signUp(email, password);
     if (authError) {
-      setError(authError.message || 'Could not sign in. Check your details and try again.');
+      setError(authError.message || 'Could not create your account. Please try again.');
+      setBusy(false);
+      return;
+    }
+    if (needsConfirmation) {
+      setConfirmSent(true);
       setBusy(false);
       return;
     }
     navigate('/home', { replace: true });
   };
+
+  if (confirmSent) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.topSection}>
+          <h1 style={styles.brand}>aftertaste</h1>
+        </div>
+        <div style={styles.formSection}>
+          <h2 style={styles.welcome}>Check your inbox</h2>
+          <p style={styles.subtitle}>
+            We sent a confirmation link to {email}. Tap it to activate your account, then sign in.
+          </p>
+          <Link to="/login" style={styles.backLink}>Back to sign in</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -37,10 +69,10 @@ export default function LoginScreen() {
       </div>
 
       <div style={styles.formSection}>
-        <h2 style={styles.welcome}>Welcome back</h2>
-        <p style={styles.subtitle}>Sign in to your food journal</p>
+        <h2 style={styles.welcome}>Create account</h2>
+        <p style={styles.subtitle}>Start your food journal</p>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSignup}>
           <div style={styles.inputGroup}>
             <label style={styles.label}>EMAIL</label>
             <input
@@ -52,39 +84,39 @@ export default function LoginScreen() {
               onChange={(e) => { setEmail(e.target.value); setError(''); }}
             />
           </div>
-
           <div style={styles.inputGroup}>
             <label style={styles.label}>PASSWORD</label>
             <input
               style={styles.input}
               type="password"
-              autoComplete="current-password"
-              placeholder="Your password"
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
               value={password}
               onChange={(e) => { setPassword(e.target.value); setError(''); }}
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>CONFIRM PASSWORD</label>
+            <input
+              style={styles.input}
+              type="password"
+              autoComplete="new-password"
+              placeholder="Re-enter your password"
+              value={confirm}
+              onChange={(e) => { setConfirm(e.target.value); setError(''); }}
             />
           </div>
 
           {error && <p style={styles.error}>{error}</p>}
 
-          <button type="submit" style={{ ...styles.loginBtn, opacity: busy ? 0.7 : 1 }} disabled={busy}>
-            {busy ? <Spinner size={20} color={colors.white} /> : 'Sign In'}
+          <button type="submit" style={{ ...styles.signupBtn, opacity: busy ? 0.7 : 1 }} disabled={busy}>
+            {busy ? <Spinner size={20} color={colors.white} /> : 'Create Account'}
           </button>
         </form>
 
-        <p style={styles.signupRow}>
-          New here? <Link to="/signup" style={styles.signupLink}>Create an account</Link>
+        <p style={styles.loginRow}>
+          Already have an account? <Link to="/login" style={styles.loginLink}>Sign in</Link>
         </p>
-
-        {isLocalMode && (
-          <div style={styles.noticeBox}>
-            <p style={styles.noticeTitle}>Local mode</p>
-            <p style={styles.noticeText}>
-              Supabase isn't configured, so data stays on this device. Add your Supabase keys
-              to enable secure cloud accounts.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -102,7 +134,7 @@ const styles = {
   tagline: { fontFamily: font.brand, fontSize: '14px', fontStyle: 'italic', color: 'rgba(255,255,255,0.7)', marginTop: '6px' },
   formSection: { flex: 1, padding: '36px 30px', overflow: 'auto' },
   welcome: { fontSize: '26px', fontWeight: 700, color: colors.dark, margin: '0 0 4px' },
-  subtitle: { fontSize: '15px', color: colors.gray, marginBottom: '30px' },
+  subtitle: { fontSize: '15px', color: colors.gray, marginBottom: '30px', lineHeight: '22px' },
   inputGroup: { marginBottom: '18px' },
   label: { display: 'block', fontSize: '13px', fontWeight: 600, color: colors.gray, marginBottom: '6px', letterSpacing: '0.5px' },
   input: {
@@ -116,7 +148,7 @@ const styles = {
     boxSizing: 'border-box',
   },
   error: { color: colors.red, fontSize: '14px', marginBottom: '10px' },
-  loginBtn: {
+  signupBtn: {
     width: '100%',
     background: colors.brg,
     color: colors.white,
@@ -132,9 +164,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  signupRow: { textAlign: 'center', marginTop: '22px', fontSize: '15px', color: colors.gray },
-  signupLink: { color: colors.brg, fontWeight: 700, textDecoration: 'none' },
-  noticeBox: { marginTop: '30px', padding: '16px', background: colors.brgLight, borderRadius: radius.md, border: '1px solid rgba(0,66,37,0.15)' },
-  noticeTitle: { fontSize: '13px', fontWeight: 700, color: colors.brg, marginBottom: '4px', letterSpacing: '0.5px' },
-  noticeText: { fontSize: '13px', color: colors.brg, lineHeight: '18px' },
+  loginRow: { textAlign: 'center', marginTop: '22px', fontSize: '15px', color: colors.gray },
+  loginLink: { color: colors.brg, fontWeight: 700, textDecoration: 'none' },
+  backLink: { color: colors.brg, fontWeight: 700, textDecoration: 'none', fontSize: '15px' },
 };

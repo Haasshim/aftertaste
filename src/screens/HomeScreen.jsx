@@ -1,36 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getDishLogs } from '../utils/storage';
-import { STAMPS } from '../utils/constants';
-import restaurants from '../data/restaurants';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { getDishLogs } from '../lib/dataClient';
+import Icon from '../components/Icon';
+import StampChip from '../components/StampChip';
+import RatingSummary from '../components/RatingSummary';
+import Spinner from '../components/Spinner';
+import ErrorState from '../components/ErrorState';
+import OfflineBanner from '../components/OfflineBanner';
+import { colors, font, radius, shadow, space } from '../theme/theme';
 
 export default function HomeScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { signOut } = useAuth();
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    loadLogs();
+  const loadLogs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getDishLogs();
+      setLogs(data);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Reload logs when navigating back
-  useEffect(() => {
-    const handleFocus = () => loadLogs();
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, []);
-
-  const loadLogs = async () => {
-    const data = await getDishLogs();
-    setLogs(data);
-  };
-
-  // reload on route changes
+  // Reload on mount and whenever we navigate back to Home (location.key changes
+  // on every navigation, unlike window.location.pathname under HashRouter).
   useEffect(() => {
     loadLogs();
-  }, [window.location.pathname]);
+  }, [loadLogs, location.key]);
 
-  const getRestaurant = (id) => restaurants.find((r) => r.id === id);
-  const getStamp = (id) => STAMPS.find((s) => s.id === id);
+  useEffect(() => {
+    const onFocus = () => loadLogs();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [loadLogs]);
 
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
@@ -44,77 +55,76 @@ export default function HomeScreen() {
           <h1 style={styles.headerTitle}>aftertaste</h1>
           <p style={styles.headerSub}>Your Food Journal</p>
         </div>
-        <div style={styles.logCount}>
-          <span style={styles.logNumber}>{logs.length}</span>
-          <span style={styles.logLabel}>LOGS</span>
+        <div style={styles.headerRight}>
+          <div style={styles.logCount}>
+            <span style={styles.logNumber}>{logs.length}</span>
+            <span style={styles.logLabel}>LOGS</span>
+          </div>
+          <button
+            style={styles.signOutBtn}
+            aria-label="Sign out"
+            onClick={async () => { await signOut(); navigate('/login', { replace: true }); }}
+          >
+            <Icon name="log-out" size={20} color="rgba(255,255,255,0.85)" />
+          </button>
         </div>
       </div>
 
+      <OfflineBanner />
+
       <div style={styles.body}>
-        {logs.length === 0 ? (
+        {loading ? (
+          <div style={styles.center}>
+            <Spinner size={32} />
+          </div>
+        ) : error ? (
+          <ErrorState error={error} onRetry={loadLogs} />
+        ) : logs.length === 0 ? (
           <div style={styles.empty}>
-            <div style={{ fontSize: '64px' }}>&#127869;</div>
+            <Icon name="menu" size={56} color={colors.mediumGray} strokeWidth={1.5} />
             <h3 style={styles.emptyTitle}>No dishes logged yet</h3>
             <p style={styles.emptyText}>
               Tap the + button to log your first dish and start building your food journal.
             </p>
           </div>
         ) : (
-          logs.map((log) => {
-            const restaurant = getRestaurant(log.restaurantId);
-            return (
-              <div
-                key={log.id}
-                style={styles.card}
-                onClick={() => navigate(`/dish/${log.id}`, { state: { log } })}
-              >
-                <div style={styles.cardHeader}>
-                  <div style={{ flex: 1 }}>
-                    <h3 style={styles.dishName}>{log.dishName}</h3>
-                    <p style={styles.restName}>{restaurant?.name || 'Unknown'}</p>
-                  </div>
-                  <div style={styles.ratingBadge}>
-                    <span style={styles.ratingNum}>{log.rating}</span>
-                    <span style={styles.ratingOf}>/10</span>
-                  </div>
+          logs.map((log) => (
+            <div
+              key={log.id}
+              style={styles.card}
+              onClick={() => navigate(`/dish/${log.id}`, { state: { log } })}
+            >
+              <div style={styles.cardHeader}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3 style={styles.dishName}>{log.dishName}</h3>
+                  <p style={styles.restName}>{log.restaurantName || 'Unknown'}</p>
                 </div>
-
-                {log.comment && (
-                  <p style={styles.comment}>"{log.comment}"</p>
-                )}
-
-                <div style={styles.cardFooter}>
-                  <div style={styles.stampRow}>
-                    {log.stamps?.map((stampId) => {
-                      const stamp = getStamp(stampId);
-                      if (!stamp) return null;
-                      return (
-                        <span
-                          key={stampId}
-                          style={{
-                            ...styles.stampChip,
-                            background: stamp.color + '18',
-                            color: stamp.color,
-                          }}
-                        >
-                          {stamp.emoji} {stamp.label}
-                        </span>
-                      );
-                    })}
-                  </div>
-                  <p style={styles.dateText}>{log.day}, {formatDate(log.date)}</p>
+                <div style={{ marginLeft: space.md }}>
+                  <RatingSummary log={log} variant="badge" />
                 </div>
               </div>
-            );
-          })
+
+              {log.comment && <p style={styles.comment}>"{log.comment}"</p>}
+
+              <div style={styles.cardFooter}>
+                {log.stamps?.length > 0 && (
+                  <div style={styles.stampRow}>
+                    {log.stamps.map((stampId) => (
+                      <StampChip key={stampId} stampId={stampId} size="sm" />
+                    ))}
+                  </div>
+                )}
+                <p style={styles.dateText}>
+                  {log.day}, {formatDate(log.date)}
+                </p>
+              </div>
+            </div>
+          ))
         )}
       </div>
 
-      <button style={styles.fab} onClick={() => navigate('/search')}>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth="2.5">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
+      <button style={styles.fab} aria-label="Log a dish" onClick={() => navigate('/search')}>
+        <Icon name="plus" size={30} color={colors.white} strokeWidth={2.5} />
       </button>
     </div>
   );
@@ -125,52 +135,44 @@ const styles = {
     height: '100vh',
     display: 'flex',
     flexDirection: 'column',
-    background: '#F8F8F6',
+    background: colors.offWhite,
     position: 'relative',
   },
   header: {
-    background: '#004225',
-    padding: '50px 24px 18px',
+    background: colors.brg,
+    padding: 'calc(env(safe-area-inset-top, 0px) + 20px) 24px 18px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     flexShrink: 0,
   },
   headerTitle: {
-    fontFamily: "'Playfair Display', serif",
+    fontFamily: font.brand,
     fontSize: '28px',
     fontWeight: 700,
-    color: '#FFF',
+    color: colors.white,
     letterSpacing: '1px',
     margin: 0,
   },
-  headerSub: {
-    fontSize: '13px',
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: '2px',
-  },
-  logCount: {
-    textAlign: 'center',
+  headerSub: { fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginTop: '2px' },
+  headerRight: { display: 'flex', alignItems: 'center', gap: '14px' },
+  signOutBtn: {
+    width: '38px',
+    height: '38px',
+    borderRadius: '19px',
+    background: 'rgba(255,255,255,0.12)',
+    border: 'none',
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    padding: 0,
   },
-  logNumber: {
-    fontSize: '24px',
-    fontWeight: 700,
-    color: '#FFF',
-  },
-  logLabel: {
-    fontSize: '11px',
-    color: 'rgba(255,255,255,0.6)',
-    letterSpacing: '1px',
-  },
-  body: {
-    flex: 1,
-    overflow: 'auto',
-    padding: '16px',
-    paddingBottom: '100px',
-  },
+  logCount: { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  logNumber: { fontSize: '24px', fontWeight: 700, color: colors.white },
+  logLabel: { fontSize: '11px', color: 'rgba(255,255,255,0.6)', letterSpacing: '1px' },
+  body: { flex: 1, overflow: 'auto', padding: space.lg, paddingBottom: '100px' },
+  center: { display: 'flex', justifyContent: 'center', paddingTop: '60px' },
   empty: {
     display: 'flex',
     flexDirection: 'column',
@@ -179,65 +181,32 @@ const styles = {
     height: '100%',
     textAlign: 'center',
     padding: '0 20px',
+    gap: '6px',
   },
-  emptyTitle: {
-    fontSize: '22px',
-    fontWeight: 700,
-    color: '#1A1A1A',
-    marginBottom: '8px',
-  },
-  emptyText: {
-    fontSize: '15px',
-    color: '#6B6B6B',
-    lineHeight: '22px',
-  },
+  emptyTitle: { fontSize: '22px', fontWeight: 700, color: colors.dark, marginTop: '8px' },
+  emptyText: { fontSize: '15px', color: colors.gray, lineHeight: '22px' },
   card: {
-    background: '#FFF',
-    borderRadius: '16px',
+    background: colors.white,
+    borderRadius: radius.lg,
     padding: '18px',
     marginBottom: '14px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    boxShadow: shadow.card,
     cursor: 'pointer',
-    transition: 'transform 0.15s',
   },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
+  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
   dishName: {
     fontSize: '18px',
     fontWeight: 700,
-    color: '#1A1A1A',
+    color: colors.dark,
     margin: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
-  restName: {
-    fontSize: '14px',
-    color: '#6B6B6B',
-    marginTop: '2px',
-  },
-  ratingBadge: {
-    background: '#004225',
-    padding: '6px 12px',
-    borderRadius: '10px',
-    display: 'flex',
-    alignItems: 'baseline',
-    marginLeft: '12px',
-    flexShrink: 0,
-  },
-  ratingNum: {
-    fontSize: '20px',
-    fontWeight: 800,
-    color: '#FFF',
-  },
-  ratingOf: {
-    fontSize: '12px',
-    color: 'rgba(255,255,255,0.7)',
-    marginLeft: '1px',
-  },
+  restName: { fontSize: '14px', color: colors.gray, marginTop: '2px' },
   comment: {
     fontSize: '14px',
-    color: '#6B6B6B',
+    color: colors.gray,
     fontStyle: 'italic',
     marginTop: '10px',
     lineHeight: '20px',
@@ -246,41 +215,22 @@ const styles = {
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
   },
-  cardFooter: {
-    marginTop: '12px',
-  },
-  stampRow: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '6px',
-    marginBottom: '8px',
-  },
-  stampChip: {
-    fontSize: '11px',
-    fontWeight: 600,
-    padding: '4px 8px',
-    borderRadius: '8px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '4px',
-  },
-  dateText: {
-    fontSize: '12px',
-    color: '#9E9E9E',
-  },
+  cardFooter: { marginTop: '12px' },
+  stampRow: { display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' },
+  dateText: { fontSize: '12px', color: colors.mediumGray },
   fab: {
     position: 'absolute',
-    bottom: '30px',
+    bottom: 'calc(env(safe-area-inset-bottom, 0px) + 30px)',
     right: '24px',
     width: '60px',
     height: '60px',
     borderRadius: '30px',
-    background: '#004225',
+    background: colors.brg,
     border: 'none',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+    boxShadow: shadow.float,
     cursor: 'pointer',
     zIndex: 10,
   },

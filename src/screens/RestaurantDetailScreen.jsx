@@ -1,266 +1,218 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import restaurants from '../data/restaurants';
+import { getRestaurant } from '../lib/places';
+import { getLoggedDishNames } from '../lib/dataClient';
+import Icon from '../components/Icon';
+import Spinner from '../components/Spinner';
+import ErrorState from '../components/ErrorState';
+import OfflineBanner from '../components/OfflineBanner';
+import { colors, radius } from '../theme/theme';
+
+const FALLBACK_IMG =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><rect width="400" height="200" fill="#E8F0EB"/></svg>`
+  );
 
 export default function RestaurantDetailScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const restaurant = restaurants.find((r) => r.id === id);
+  const [restaurant, setRestaurant] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [customDish, setCustomDish] = useState('');
+  const [pastDishes, setPastDishes] = useState([]);
 
-  if (!restaurant) {
-    return <div style={{ padding: '40px', textAlign: 'center' }}>Restaurant not found</div>;
-  }
+  const logCustomDish = () => {
+    const name = customDish.trim();
+    if (!name) return;
+    navigate(`/log/${restaurant.id}/custom?name=${encodeURIComponent(name)}`);
+  };
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setRestaurant(await getRestaurant(id));
+      getLoggedDishNames(id).then(setPastDishes);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => { load(); }, [load]);
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate(-1)}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth="2">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
+        <button style={styles.iconBtn} aria-label="Go back" onClick={() => navigate(-1)}>
+          <Icon name="back" size={24} color={colors.white} />
         </button>
-        <h2 style={styles.headerTitle}>{restaurant.name}</h2>
+        <h2 style={styles.headerTitle}>{restaurant?.name || 'Restaurant'}</h2>
         <div style={{ width: '40px' }} />
       </div>
 
-      <div style={styles.body}>
-        <img src={restaurant.image} alt={restaurant.name} style={styles.hero} />
+      <OfflineBanner />
 
-        <div style={styles.infoSection}>
-          <h2 style={styles.name}>{restaurant.name}</h2>
-          <p style={styles.location}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B6B6B" strokeWidth="2" style={{ verticalAlign: 'middle', marginRight: '4px' }}>
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-            {restaurant.location}
-          </p>
-          <p style={styles.address}>{restaurant.address}</p>
-          <div style={styles.cuisineRow}>
-            {restaurant.cuisine.map((c, i) => (
-              <span key={i} style={styles.cuisineChip}>{c}</span>
-            ))}
-          </div>
-          <p style={styles.price}>{'\u20B9'}{restaurant.priceForTwo} for two</p>
-        </div>
+      {loading ? (
+        <div style={styles.center}><Spinner size={32} /></div>
+      ) : error ? (
+        <ErrorState error={error} onRetry={load} />
+      ) : !restaurant ? (
+        <ErrorState error={{ message: 'Restaurant not found.' }} />
+      ) : (
+        <div style={styles.body}>
+          <img
+            src={restaurant.image || FALLBACK_IMG}
+            alt={restaurant.name}
+            style={styles.hero}
+            onError={(e) => { e.currentTarget.src = FALLBACK_IMG; }}
+          />
 
-        <div style={styles.menuSection}>
-          <div style={styles.menuHeader}>
-            <h3 style={styles.menuTitle}>Menu</h3>
-            <span style={{ fontSize: '12px', color: '#9E9E9E' }}>Tap a dish to log it</span>
-          </div>
-          <img src={restaurant.menuImage} alt="Menu" style={styles.menuImg} />
-        </div>
-
-        <div style={styles.dishesSection}>
-          <h3 style={styles.dishesTitle}>Dishes</h3>
-          <p style={styles.dishesSub}>Select a dish to rate and log</p>
-          {restaurant.dishes.map((dish) => (
-            <div
-              key={dish.id}
-              style={styles.dishRow}
-              onClick={() => navigate(`/log/${restaurant.id}/${dish.id}`)}
-            >
-              <div>
-                <p style={styles.dishName}>{dish.name}</p>
-                <p style={styles.dishCat}>{dish.category}</p>
+          <div style={styles.infoSection}>
+            <h2 style={styles.name}>{restaurant.name}</h2>
+            {restaurant.location && (
+              <p style={styles.location}>
+                <Icon name="map-pin" size={16} color={colors.gray} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} />
+                {restaurant.location}
+              </p>
+            )}
+            {restaurant.address && <p style={styles.address}>{restaurant.address}</p>}
+            {restaurant.cuisine?.length > 0 && (
+              <div style={styles.cuisineRow}>
+                {restaurant.cuisine.map((c, i) => (
+                  <span key={i} style={styles.cuisineChip}>{c}</span>
+                ))}
               </div>
-              <button style={styles.rateBtn}>
-                Rate
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#004225" strokeWidth="2" style={{ marginLeft: '4px' }}>
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
+            )}
+            {restaurant.priceForTwo && <p style={styles.price}>{'₹'}{restaurant.priceForTwo} for two</p>}
+          </div>
+
+          {restaurant.menuImage && (
+            <div style={styles.menuSection}>
+              <div style={styles.menuHeader}>
+                <h3 style={styles.menuTitle}>Menu</h3>
+                <span style={{ fontSize: '12px', color: colors.mediumGray }}>Tap a dish to log it</span>
+              </div>
+              <img
+                src={restaurant.menuImage}
+                alt="Menu"
+                style={styles.menuImg}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            </div>
+          )}
+
+          <div style={styles.dishesSection}>
+            <h3 style={styles.dishesTitle}>Dishes</h3>
+            <p style={styles.dishesSub}>
+              {restaurant.dishes?.length ? 'Select a dish to rate and log' : 'Enter the dish you want to log'}
+            </p>
+            {(restaurant.dishes || []).map((dish) => (
+              <div key={dish.id} style={styles.dishRow} onClick={() => navigate(`/log/${restaurant.id}/${dish.id}`)}>
+                <div>
+                  <p style={styles.dishName}>{dish.name}</p>
+                  {dish.category && <p style={styles.dishCat}>{dish.category}</p>}
+                </div>
+                <button style={styles.rateBtn}>
+                  Rate
+                  <Icon name="star" size={14} color={colors.brg} style={{ marginLeft: '4px' }} />
+                </button>
+              </div>
+            ))}
+
+            {/* Dishes you've logged here before — quick-pick to log again. */}
+            {(() => {
+              const menuNames = new Set((restaurant.dishes || []).map((d) => d.name));
+              const remembered = pastDishes.filter((n) => !menuNames.has(n));
+              if (!remembered.length) return null;
+              return (
+                <div style={styles.rememberedWrap}>
+                  <p style={styles.rememberedLabel}>Your dishes here</p>
+                  <div style={styles.rememberedChips}>
+                    {remembered.map((name) => (
+                      <button
+                        key={name}
+                        style={styles.rememberedChip}
+                        onClick={() => navigate(`/log/${restaurant.id}/custom?name=${encodeURIComponent(name)}`)}
+                      >
+                        {name}
+                        <Icon name="plus" size={13} color={colors.brg} style={{ marginLeft: '5px' }} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Log a dish that isn't in the list (always available; the only
+                option for restaurants discovered via Places, which have no menu). */}
+            <div style={styles.customRow}>
+              <input
+                style={styles.customInput}
+                placeholder="Dish name (e.g. Mutton Biryani)"
+                value={customDish}
+                onChange={(e) => setCustomDish(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && logCustomDish()}
+              />
+              <button
+                style={{ ...styles.customBtn, opacity: customDish.trim() ? 1 : 0.5 }}
+                onClick={logCustomDish}
+                disabled={!customDish.trim()}
+              >
+                Log
+                <Icon name="plus" size={15} color={colors.white} style={{ marginLeft: '4px' }} />
               </button>
             </div>
-          ))}
-        </div>
+          </div>
 
-        <div style={styles.addDish}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9E9E9E" strokeWidth="2">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 8v8M8 12h8"/>
-          </svg>
-          <span style={{ fontSize: '14px', color: '#9E9E9E', marginLeft: '6px', fontWeight: 500 }}>
-            Add a dish not on this list (Coming Soon)
-          </span>
+          <div style={{ height: '40px' }} />
         </div>
-
-        <div style={{ height: '40px' }} />
-      </div>
+      )}
     </div>
   );
 }
 
 const styles = {
-  container: {
-    height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    background: '#F8F8F6',
-  },
+  container: { height: '100vh', display: 'flex', flexDirection: 'column', background: colors.offWhite },
   header: {
-    background: '#004225',
-    padding: '50px 16px 16px',
+    background: colors.brg,
+    padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     flexShrink: 0,
   },
-  backBtn: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '20px',
-    background: 'transparent',
-    border: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-  },
-  headerTitle: {
-    fontSize: '18px',
-    fontWeight: 700,
-    color: '#FFF',
-    margin: 0,
-    flex: 1,
-    textAlign: 'center',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  body: {
-    flex: 1,
-    overflow: 'auto',
-  },
-  hero: {
-    width: '100%',
-    height: '200px',
-    objectFit: 'cover',
-    background: '#E0E0E0',
-    display: 'block',
-  },
-  infoSection: {
-    background: '#FFF',
-    padding: '20px',
-  },
-  name: {
-    fontSize: '24px',
-    fontWeight: 800,
-    color: '#1A1A1A',
-    margin: 0,
-  },
-  location: {
-    fontSize: '15px',
-    color: '#6B6B6B',
-    marginTop: '6px',
-    fontWeight: 500,
-  },
-  address: {
-    fontSize: '13px',
-    color: '#9E9E9E',
-    marginTop: '4px',
-    lineHeight: '18px',
-  },
-  cuisineRow: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '6px',
-    marginTop: '12px',
-  },
-  cuisineChip: {
-    background: '#E8F0EB',
-    color: '#004225',
-    fontSize: '12px',
-    fontWeight: 600,
-    padding: '5px 10px',
-    borderRadius: '8px',
-  },
-  price: {
-    fontSize: '15px',
-    fontWeight: 700,
-    color: '#004225',
-    marginTop: '12px',
-  },
-  menuSection: {
-    background: '#FFF',
-    padding: '20px',
-    marginTop: '10px',
-  },
-  menuHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '12px',
-  },
-  menuTitle: {
-    fontSize: '20px',
-    fontWeight: 700,
-    color: '#1A1A1A',
-    margin: 0,
-  },
-  menuImg: {
-    width: '100%',
-    height: '180px',
-    borderRadius: '12px',
-    objectFit: 'cover',
-    background: '#E0E0E0',
-  },
-  dishesSection: {
-    background: '#FFF',
-    padding: '20px',
-    marginTop: '10px',
-  },
-  dishesTitle: {
-    fontSize: '20px',
-    fontWeight: 700,
-    color: '#1A1A1A',
-    margin: 0,
-  },
-  dishesSub: {
-    fontSize: '13px',
-    color: '#6B6B6B',
-    marginTop: '2px',
-    marginBottom: '14px',
-  },
-  dishRow: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '14px 0',
-    borderBottom: '1px solid #F8F8F6',
-    cursor: 'pointer',
-  },
-  dishName: {
-    fontSize: '16px',
-    fontWeight: 600,
-    color: '#1A1A1A',
-    margin: 0,
-  },
-  dishCat: {
-    fontSize: '13px',
-    color: '#9E9E9E',
-    marginTop: '2px',
-  },
-  rateBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    background: '#E8F0EB',
-    border: 'none',
-    padding: '8px 14px',
-    borderRadius: '10px',
-    fontSize: '14px',
-    fontWeight: 600,
-    color: '#004225',
-    cursor: 'pointer',
-    flexShrink: 0,
-  },
-  addDish: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: '10px',
-    padding: '16px',
-    background: '#FFF',
-    opacity: 0.6,
-  },
+  iconBtn: { width: '40px', height: '40px', borderRadius: '20px', background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 },
+  headerTitle: { fontSize: '18px', fontWeight: 700, color: colors.white, margin: 0, flex: 1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  center: { flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' },
+  body: { flex: 1, overflow: 'auto' },
+  hero: { width: '100%', height: '200px', objectFit: 'cover', background: colors.lightGray, display: 'block' },
+  infoSection: { background: colors.white, padding: '20px' },
+  name: { fontSize: '24px', fontWeight: 800, color: colors.dark, margin: 0 },
+  location: { fontSize: '15px', color: colors.gray, marginTop: '6px', fontWeight: 500 },
+  address: { fontSize: '13px', color: colors.mediumGray, marginTop: '4px', lineHeight: '18px' },
+  cuisineRow: { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' },
+  cuisineChip: { background: colors.brgLight, color: colors.brg, fontSize: '12px', fontWeight: 600, padding: '5px 10px', borderRadius: radius.sm },
+  price: { fontSize: '15px', fontWeight: 700, color: colors.brg, marginTop: '12px' },
+  menuSection: { background: colors.white, padding: '20px', marginTop: '10px' },
+  menuHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' },
+  menuTitle: { fontSize: '20px', fontWeight: 700, color: colors.dark, margin: 0 },
+  menuImg: { width: '100%', height: '180px', borderRadius: radius.md, objectFit: 'cover', background: colors.lightGray },
+  dishesSection: { background: colors.white, padding: '20px', marginTop: '10px' },
+  dishesTitle: { fontSize: '20px', fontWeight: 700, color: colors.dark, margin: 0 },
+  dishesSub: { fontSize: '13px', color: colors.gray, marginTop: '2px', marginBottom: '14px' },
+  dishRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: `1px solid ${colors.offWhite}`, cursor: 'pointer' },
+  dishName: { fontSize: '16px', fontWeight: 600, color: colors.dark, margin: 0 },
+  dishCat: { fontSize: '13px', color: colors.mediumGray, marginTop: '2px' },
+  rateBtn: { display: 'flex', alignItems: 'center', background: colors.brgLight, border: 'none', padding: '8px 14px', borderRadius: '10px', fontSize: '14px', fontWeight: 600, color: colors.brg, cursor: 'pointer', flexShrink: 0 },
+  rememberedWrap: { marginTop: '16px' },
+  rememberedLabel: { fontSize: '13px', fontWeight: 700, color: colors.gray, margin: '0 0 8px' },
+  rememberedChips: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
+  rememberedChip: { display: 'inline-flex', alignItems: 'center', background: colors.brgLight, color: colors.brg, border: 'none', borderRadius: '20px', padding: '8px 14px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' },
+  customRow: { display: 'flex', gap: '8px', alignItems: 'center', marginTop: '16px' },
+  customInput: { flex: 1, padding: '12px 14px', background: colors.offWhite, border: '1.5px solid #D0D0D0', borderRadius: '10px', fontSize: '14px', color: colors.dark, outline: 'none', minWidth: 0 },
+  customBtn: { display: 'flex', alignItems: 'center', background: colors.brg, color: colors.white, border: 'none', padding: '12px 16px', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', flexShrink: 0 },
 };

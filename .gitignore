@@ -8,10 +8,20 @@ build/
 # Vite cache
 .vite/
 
-# Environment files
+# Environment files (keep .env.example committed)
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
+supabase/.env
+supabase/functions/**/.env
+
+# Capacitor / Android build artifacts
+android/
+ios/
+.gradle/
+*.apk
+*.aab
+*.keystore
 
 # Editor
 .vscode/

@@ -65,3 +65,21 @@ button {
 ::-webkit-scrollbar {
   width: 0;
 }
+
+/* Pulsing dot for the active voice-recording indicator (AddDishLogScreen). */
+@keyframes pulse {
+  0%   { opacity: 1;   transform: scale(1); }
+  50%  { opacity: 0.4; transform: scale(0.75); }
+  100% { opacity: 1;   transform: scale(1); }
+}
+
+/* Spinner rotation for loading states. */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Honor the device safe areas (notch / status bar) on native + iOS web. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}

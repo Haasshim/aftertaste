@@ -76,16 +76,19 @@ Integrate the Claude API to generate personalised tasting notes on the dish logg
 
 ---
 
-### 2. Live Restaurant & Menu Data (Swiggy MCP)
+### 2. Live Restaurant Data (Google Places) — implemented, optional
 
-The current dataset is a static list of 8 Chennai restaurants hardcoded in `src/data/restaurants.js`. This limits the app to a single city and quickly becomes outdated. Integrating Swiggy's food MCP would replace the static file with live API queries, unlocking:
+The bundled dataset is a static list of Chennai restaurants in `src/data/restaurants.js`. With
+the **Google Places** integration enabled (`VITE_ENABLE_PLACES=true` + the `places-search` Edge
+Function deployed), restaurant search goes live across all of India:
 
-- **Real-time restaurant search** across all Indian cities instead of a fixed local list
-- **Up-to-date menus** with actual dish names, categories, and prices fetched on demand
-- **Location-aware discovery** — surface nearby open restaurants automatically
-- **Enriched dish metadata** — dietary tags, cuisine type, and community ratings alongside the user's personal rating
+- **Real-time restaurant search** across any Indian city instead of a fixed local list
+- **Location-aware discovery** — type an area/city or tap **Use GPS** to bias results nearby
+- **Server-held API key** — the Google key lives only in the Edge Function, never in the bundle
 
-**Implementation path:** The integration is surgical — swap `restaurants.js` with async MCP calls in `SearchRestaurantScreen.jsx` and `RestaurantDetailScreen.jsx`. The existing log structure already stores `restaurantId` and `dishId` as keys, so every past log remains mappable to Swiggy's catalog.
+Places does not expose menus, so a discovered restaurant has no dish list — you log a **custom
+dish name** on its page. The app falls back to the static catalog whenever the flag is off or a
+request fails. See [SETUP.md](SETUP.md) §3 for the Google Cloud + billing steps.
 
 ---
 

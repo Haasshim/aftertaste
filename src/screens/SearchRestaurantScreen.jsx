@@ -1,35 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import restaurants from '../data/restaurants';
+import { searchRestaurants } from '../lib/places';
+import Icon from '../components/Icon';
+import Spinner from '../components/Spinner';
+import ErrorState from '../components/ErrorState';
+import OfflineBanner from '../components/OfflineBanner';
+import { colors, font, radius, shadow } from '../theme/theme';
+
+const FALLBACK_IMG =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="65" height="65"><rect width="65" height="65" fill="#E8F0EB"/></svg>`
+  );
+
+const LOCATION_KEY = 'aftertaste:lastLocation';
 
 export default function SearchRestaurantScreen() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  const [location, setLocation] = useState(() => {
+    const saved = localStorage.getItem(LOCATION_KEY) || '';
+    // Don't pre-fill raw GPS coords into the visible text field.
+    return /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/.test(saved) ? '' : saved;
+  });
+  const [coords, setCoords] = useState(null); // "lat,lng" when GPS is used
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [source, setSource] = useState('static');
 
-  const filtered = restaurants.filter(
-    (r) =>
-      r.name.toLowerCase().includes(query.toLowerCase()) ||
-      r.location.toLowerCase().includes(query.toLowerCase()) ||
-      r.cuisine.some((c) => c.toLowerCase().includes(query.toLowerCase()))
-  );
+  const runSearch = useCallback(async (q, loc) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { restaurants, source: src } = await searchRestaurants(q, loc);
+      setResults(restaurants);
+      setSource(src);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const useMyLocation = () => {
+    if (!navigator.geolocation) {
+      setLocError('Location is not available on this device.');
+      return;
+    }
+    setLocating(true);
+    setLocError('');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const c = `${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`;
+        setCoords(c);
+        setLocation('My current location');
+        localStorage.setItem(LOCATION_KEY, c);
+        setLocating(false);
+      },
+      () => {
+        setLocError('Could not get your location. Type an area instead.');
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
+
+  const onLocationType = (e) => {
+    setLocation(e.target.value);
+    setCoords(null); // typing overrides GPS
+    localStorage.setItem(LOCATION_KEY, e.target.value);
+  };
+
+  // The location actually sent: GPS coords take priority over typed text.
+  const effectiveLocation = coords || (location === 'My current location' ? '' : location);
+
+  // Debounce the query + location.
+  useEffect(() => {
+    const t = setTimeout(() => runSearch(query, effectiveLocation), 350);
+    return () => clearTimeout(t);
+  }, [query, effectiveLocation, runSearch]);
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate(-1)}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth="2">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
+        <button style={styles.iconBtn} aria-label="Go back" onClick={() => navigate(-1)}>
+          <Icon name="back" size={24} color={colors.white} />
         </button>
         <h2 style={styles.headerTitle}>Find a Restaurant</h2>
         <div style={{ width: '40px' }} />
       </div>
 
+      <OfflineBanner />
+
       <div style={styles.searchBar}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9E9E9E" strokeWidth="2" style={{ flexShrink: 0 }}>
-          <circle cx="11" cy="11" r="8" />
-          <path d="M21 21l-4.35-4.35" />
-        </svg>
+        <Icon name="search" size={20} color={colors.mediumGray} />
         <input
           style={styles.searchInput}
           placeholder="Search by name, location, or cuisine..."
@@ -38,195 +105,131 @@ export default function SearchRestaurantScreen() {
           autoFocus
         />
         {query && (
-          <button style={styles.clearBtn} onClick={() => setQuery('')}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="#9E9E9E">
-              <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
-            </svg>
+          <button style={styles.clearBtn} aria-label="Clear search" onClick={() => setQuery('')}>
+            <Icon name="x-circle" size={18} color={colors.mediumGray} />
           </button>
         )}
       </div>
 
+      {/* Location row: type an area or use device GPS */}
+      <div style={styles.locationBar}>
+        <Icon name="map-pin" size={18} color={colors.mediumGray} />
+        <input
+          style={styles.locationInput}
+          placeholder="Area or city (e.g. T. Nagar, Chennai)"
+          value={location}
+          onChange={onLocationType}
+        />
+        <button
+          style={styles.gpsBtn}
+          aria-label="Use my current location"
+          onClick={useMyLocation}
+          disabled={locating}
+        >
+          {locating ? <Spinner size={16} /> : <Icon name="map-pin" size={16} color={colors.brg} />}
+          <span style={styles.gpsBtnText}>{coords ? 'Located' : 'Use GPS'}</span>
+        </button>
+      </div>
+      {locError && <p style={styles.locError}>{locError}</p>}
+
       <div style={styles.list}>
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div style={styles.center}><Spinner size={30} /></div>
+        ) : error ? (
+          <ErrorState error={error} onRetry={() => runSearch(query)} />
+        ) : results.length === 0 ? (
           <div style={styles.empty}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9E9E9E" strokeWidth="1.5">
-              <path d="M3 7c0-1.1.9-2 2-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-              <path d="M8 12h8M8 16h4"/>
-            </svg>
-            <h3 style={{ fontSize: '18px', color: '#1A1A1A', marginTop: '12px' }}>
-              No restaurants found
-            </h3>
-            <p style={{ fontSize: '14px', color: '#6B6B6B', textAlign: 'center', marginTop: '8px', lineHeight: '20px' }}>
-              Can't find your restaurant? In the full version, you'll be able to add it manually.
+            <Icon name="menu" size={48} color={colors.mediumGray} strokeWidth={1.5} />
+            <h3 style={{ fontSize: '18px', color: colors.dark, marginTop: '12px' }}>No restaurants found</h3>
+            <p style={{ fontSize: '14px', color: colors.gray, textAlign: 'center', marginTop: '8px', lineHeight: '20px' }}>
+              Try a different name, location, or cuisine.
             </p>
           </div>
         ) : (
-          filtered.map((r) => (
-            <div
-              key={r.id}
-              style={styles.card}
-              onClick={() => navigate(`/restaurant/${r.id}`)}
-            >
-              <img src={r.image} alt={r.name} style={styles.cardImg} />
+          results.map((r) => (
+            <div key={r.id} style={styles.card} onClick={() => navigate(`/restaurant/${r.id}`)}>
+              <img
+                src={r.image || FALLBACK_IMG}
+                alt={r.name}
+                style={styles.cardImg}
+                onError={(e) => { e.currentTarget.src = FALLBACK_IMG; }}
+              />
               <div style={styles.cardContent}>
                 <h3 style={styles.cardName}>{r.name}</h3>
                 <p style={styles.cardLocation}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6B6B6B" strokeWidth="2" style={{ verticalAlign: 'middle', marginRight: '3px' }}>
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-                    <circle cx="12" cy="10" r="3"/>
-                  </svg>
+                  <Icon name="map-pin" size={13} color={colors.gray} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '3px' }} />
                   {r.location}
                 </p>
-                <p style={styles.cardCuisine}>{r.cuisine.join(' \u2022 ')}</p>
-                <p style={styles.cardPrice}>{'\u20B9'}{r.priceForTwo} for two</p>
+                {r.cuisine?.length > 0 && <p style={styles.cardCuisine}>{r.cuisine.join(' • ')}</p>}
+                {r.priceForTwo && <p style={styles.cardPrice}>{'₹'}{r.priceForTwo} for two</p>}
               </div>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9E9E9E" strokeWidth="2" style={{ flexShrink: 0 }}>
-                <path d="M9 18l6-6-6-6"/>
-              </svg>
+              <Icon name="chevron-right" size={20} color={colors.mediumGray} />
             </div>
           ))
         )}
-      </div>
-
-      <div style={styles.addBar}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9E9E9E" strokeWidth="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 8v8M8 12h8"/>
-        </svg>
-        <span style={{ fontSize: '14px', color: '#9E9E9E', marginLeft: '6px', fontWeight: 600 }}>
-          Add New Restaurant (Coming Soon)
-        </span>
       </div>
     </div>
   );
 }
 
 const styles = {
-  container: {
-    height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    background: '#F8F8F6',
-  },
+  container: { height: '100vh', display: 'flex', flexDirection: 'column', background: colors.offWhite },
   header: {
-    background: '#004225',
-    padding: '50px 16px 16px',
+    background: colors.brg,
+    padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     flexShrink: 0,
   },
-  backBtn: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '20px',
-    background: 'transparent',
-    border: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-  },
-  headerTitle: {
-    fontSize: '18px',
-    fontWeight: 700,
-    color: '#FFF',
-    margin: 0,
-  },
+  iconBtn: { width: '40px', height: '40px', borderRadius: '20px', background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 },
+  headerTitle: { fontSize: '18px', fontWeight: 700, color: colors.white, margin: 0 },
   searchBar: {
     display: 'flex',
     alignItems: 'center',
-    background: '#FFF',
+    gap: '8px',
+    background: colors.white,
     margin: '16px 16px 8px',
     borderRadius: '14px',
     padding: '4px 14px',
-    boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+    boxShadow: shadow.card,
     flexShrink: 0,
   },
-  searchInput: {
-    flex: 1,
-    border: 'none',
-    fontSize: '16px',
-    color: '#1A1A1A',
-    padding: '12px 10px',
-    background: 'transparent',
-  },
-  clearBtn: {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    display: 'flex',
-    padding: '4px',
-  },
-  list: {
-    flex: 1,
-    overflow: 'auto',
-    padding: '8px 16px',
-    paddingBottom: '80px',
-  },
-  card: {
+  searchInput: { flex: 1, border: 'none', fontSize: '16px', color: colors.dark, padding: '12px 4px', background: 'transparent' },
+  clearBtn: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '4px' },
+  locationBar: {
     display: 'flex',
     alignItems: 'center',
-    background: '#FFF',
+    gap: '8px',
+    background: colors.white,
+    margin: '0 16px 4px',
     borderRadius: '14px',
-    padding: '12px',
-    marginBottom: '12px',
-    boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+    padding: '2px 12px',
+    boxShadow: shadow.card,
+    flexShrink: 0,
+  },
+  locationInput: { flex: 1, border: 'none', fontSize: '14px', color: colors.dark, padding: '12px 4px', background: 'transparent', minWidth: 0 },
+  gpsBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+    background: colors.brgLight,
+    border: 'none',
+    borderRadius: '10px',
+    padding: '8px 10px',
     cursor: 'pointer',
-    transition: 'transform 0.15s',
-  },
-  cardImg: {
-    width: '65px',
-    height: '65px',
-    borderRadius: '12px',
-    objectFit: 'cover',
-    background: '#E0E0E0',
     flexShrink: 0,
   },
-  cardContent: {
-    flex: 1,
-    marginLeft: '14px',
-  },
-  cardName: {
-    fontSize: '16px',
-    fontWeight: 700,
-    color: '#1A1A1A',
-    margin: 0,
-  },
-  cardLocation: {
-    fontSize: '13px',
-    color: '#6B6B6B',
-    marginTop: '2px',
-  },
-  cardCuisine: {
-    fontSize: '12px',
-    color: '#9E9E9E',
-    marginTop: '3px',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  cardPrice: {
-    fontSize: '12px',
-    fontWeight: 600,
-    color: '#004225',
-    marginTop: '2px',
-  },
-  empty: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    marginTop: '60px',
-    padding: '0 40px',
-  },
-  addBar: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '14px',
-    borderTop: '1px solid #E0E0E0',
-    background: '#FFF',
-    opacity: 0.6,
-    flexShrink: 0,
-  },
+  gpsBtnText: { fontSize: '12px', fontWeight: 700, color: colors.brg },
+  locError: { fontSize: '12px', color: colors.red, margin: '0 16px 4px', fontWeight: 500 },
+  list: { flex: 1, overflow: 'auto', padding: '8px 16px', paddingBottom: '40px' },
+  center: { display: 'flex', justifyContent: 'center', paddingTop: '50px' },
+  card: { display: 'flex', alignItems: 'center', background: colors.white, borderRadius: '14px', padding: '12px', marginBottom: '12px', boxShadow: shadow.card, cursor: 'pointer' },
+  cardImg: { width: '65px', height: '65px', borderRadius: '12px', objectFit: 'cover', background: colors.lightGray, flexShrink: 0 },
+  cardContent: { flex: 1, marginLeft: '14px', minWidth: 0 },
+  cardName: { fontSize: '16px', fontWeight: 700, color: colors.dark, margin: 0 },
+  cardLocation: { fontSize: '13px', color: colors.gray, marginTop: '2px' },
+  cardCuisine: { fontSize: '12px', color: colors.mediumGray, marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  cardPrice: { fontSize: '12px', fontWeight: 600, color: colors.brg, marginTop: '2px' },
+  empty: { display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '60px', padding: '0 40px' },
 };
