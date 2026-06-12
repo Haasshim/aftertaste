@@ -30,7 +30,7 @@ export default function RatingInput({ value = {}, onChange }) {
     <div role="group" aria-label="Dish rating">
       {/* Overall readout */}
       <div style={styles.overallRow}>
-        <div style={{ ...styles.overallBadge, borderColor: ratingColor(overall) }}>
+        <div key={overall} className="pop-in" style={{ ...styles.overallBadge, borderColor: ratingColor(overall) }}>
           <span style={{ ...styles.overallNum, color: ratingColor(overall) }}>
             {overall ?? '–'}
           </span>
@@ -63,13 +63,15 @@ export default function RatingInput({ value = {}, onChange }) {
                   <button
                     key={n}
                     type="button"
+                    className="press"
                     aria-label={`${facet.label} ${n} out of 10`}
                     aria-pressed={selected}
                     onClick={() => setFacet(facet.key, n)}
                     style={{
                       ...styles.scaleBtn,
-                      background: selected ? colors.brg : filled ? colors.brg20 : colors.offWhite,
-                      color: selected ? colors.white : filled ? colors.brg : colors.mediumGray,
+                      background: selected ? c : filled ? `${c}33` : colors.offWhite,
+                      color: selected ? colors.white : filled ? c : colors.mediumGray,
+                      transform: selected ? 'scale(1.12)' : 'none',
                     }}
                   >
                     {n}
@@ -140,7 +142,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'background 0.12s',
+    transition: 'background 0.12s, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)',
     padding: 0,
   },
 };

@@ -10,6 +10,7 @@ import SearchRestaurantScreen from './screens/SearchRestaurantScreen';
 import RestaurantDetailScreen from './screens/RestaurantDetailScreen';
 import AddDishLogScreen from './screens/AddDishLogScreen';
 import DishDetailScreen from './screens/DishDetailScreen';
+import RestaurantLogsScreen from './screens/RestaurantLogsScreen';
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/restaurant/:id" element={<ProtectedRoute><RestaurantDetailScreen /></ProtectedRoute>} />
           <Route path="/log/:restaurantId/:dishId" element={<ProtectedRoute><AddDishLogScreen /></ProtectedRoute>} />
           <Route path="/dish/:id" element={<ProtectedRoute><DishDetailScreen /></ProtectedRoute>} />
+          <Route path="/journal/:restaurantKey" element={<ProtectedRoute><RestaurantLogsScreen /></ProtectedRoute>} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

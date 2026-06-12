@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { deleteLog } from '../lib/dataClient';
+import { shareLog } from '../lib/shareCard';
 import Icon from '../components/Icon';
 import StampChip from '../components/StampChip';
 import RatingSummary from '../components/RatingSummary';
@@ -14,6 +15,21 @@ export default function DishDetailScreen() {
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
+  const [sharing, setSharing] = useState(false);
+  const [shareNote, setShareNote] = useState('');
+
+  const handleShare = async () => {
+    setSharing(true);
+    setShareNote('');
+    try {
+      const result = await shareLog(log);
+      if (result === 'downloaded') setShareNote('Banner saved — post it anywhere.');
+    } catch (e) {
+      setShareNote(e?.message || 'Could not create the share banner.');
+    } finally {
+      setSharing(false);
+    }
+  };
 
   if (!log) {
     return <div style={{ padding: '40px', textAlign: 'center' }}>No log data</div>;
@@ -43,9 +59,14 @@ export default function DishDetailScreen() {
           <Icon name="back" size={24} color={colors.white} />
         </button>
         <h2 style={styles.headerTitle}>Dish Log</h2>
-        <button style={styles.iconBtn} aria-label="Delete log" onClick={() => setConfirming(true)}>
-          <Icon name="trash" size={22} color={colors.white} />
-        </button>
+        <div style={{ display: 'flex' }}>
+          <button className="press" style={styles.iconBtn} aria-label="Share this log" onClick={handleShare} disabled={sharing}>
+            {sharing ? <Spinner size={18} color={colors.white} /> : <Icon name="share" size={20} color={colors.white} />}
+          </button>
+          <button className="press" style={styles.iconBtn} aria-label="Delete log" onClick={() => setConfirming(true)}>
+            <Icon name="trash" size={22} color={colors.white} />
+          </button>
+        </div>
       </div>
 
       <div style={styles.body}>
@@ -133,6 +154,18 @@ export default function DishDetailScreen() {
           </div>
         )}
 
+        {/* Share banner CTA — logs are private until the user shares one. */}
+        <div style={styles.shareSection}>
+          <button className="press" style={styles.shareBtn} onClick={handleShare} disabled={sharing}>
+            {sharing ? <Spinner size={18} color={colors.white} /> : <Icon name="share" size={18} color={colors.white} style={{ marginRight: '8px' }} />}
+            Share this bite
+          </button>
+          <p style={styles.shareHint}>
+            Creates a styled banner for Instagram or WhatsApp. Until you share, this log is yours alone.
+          </p>
+          {shareNote && <p style={styles.shareNote}>{shareNote}</p>}
+        </div>
+
         <div style={{ height: '40px' }} />
       </div>
 
@@ -160,14 +193,15 @@ export default function DishDetailScreen() {
 }
 
 const styles = {
-  container: { height: '100vh', display: 'flex', flexDirection: 'column', background: colors.offWhite },
+  container: { height: '100vh', display: 'flex', flexDirection: 'column', background: colors.redBlush },
   header: {
-    background: colors.brg,
+    background: `linear-gradient(135deg, ${colors.brg} 0%, ${colors.brgDeep} 100%)`,
     padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     flexShrink: 0,
+    borderBottom: `2px solid ${colors.gold}`,
   },
   iconBtn: {
     width: '40px',
@@ -205,6 +239,22 @@ const styles = {
   linksList: { display: 'flex', flexDirection: 'column', gap: '8px' },
   detailLink: { display: 'flex', alignItems: 'center', gap: '10px', background: colors.offWhite, borderRadius: '10px', padding: '12px 14px', textDecoration: 'none' },
   detailLinkText: { flex: 1, fontSize: '14px', color: colors.brg, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  shareSection: { padding: '18px', textAlign: 'center' },
+  shareBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: `linear-gradient(135deg, ${colors.racingRed} 0%, ${colors.racingRedDeep} 100%)`,
+    color: colors.white,
+    border: `2px solid ${colors.goldBright}`,
+    borderRadius: radius.pill,
+    padding: '14px 28px',
+    fontSize: '15px',
+    fontWeight: 700,
+    boxShadow: '0 4px 14px rgba(79,19,32,0.35)',
+  },
+  shareHint: { fontSize: '12px', color: colors.mediumGray, marginTop: '10px', lineHeight: '18px' },
+  shareNote: { fontSize: '13px', color: colors.brg, fontWeight: 600, marginTop: '8px' },
   modalOverlay: {
     position: 'absolute',
     inset: 0,

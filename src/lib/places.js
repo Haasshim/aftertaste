@@ -1,22 +1,12 @@
-// Restaurant discovery. When the Google Places integration is enabled (and
-// Supabase is configured), this calls the places-search Edge Function — which
-// holds the Google API key server-side. Otherwise (or on any failure) it falls
-// back to the bundled static catalog so the app always works.
-//
-// Note: Places returns restaurants but NOT menus, so discovered restaurants
-// have an empty `dishes` array — the UI lets you log a custom dish in that case.
+// Restaurant discovery via Google Places only. All calls go through the
+// places-search Edge Function, which holds the Google API key server-side.
+// Places returns restaurants but NOT menus, so restaurants have an empty
+// `dishes` array — the UI lets you log a custom dish name.
 import { supabase, isSupabaseConfigured } from './supabase';
-import staticRestaurants from '../data/restaurants';
 import { withRetry, withTimeout } from './dataClient';
 import { toAppError } from './errors';
 
 const PLACES_ENABLED = import.meta.env.VITE_ENABLE_PLACES === 'true' && isSupabaseConfigured;
-
-// Static catalog ids are short numeric strings ('1'..'15'); Google place ids
-// are long opaque tokens. Used to decide whether to hit the Places API.
-function isStaticId(id) {
-  return staticRestaurants.some((r) => r.id === id);
-}
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -49,52 +39,31 @@ async function callDiscovery(body, token) {
   return data;
 }
 
-function filterStatic(query) {
-  const q = query.toLowerCase();
-  return staticRestaurants.filter(
-    (r) =>
-      r.name.toLowerCase().includes(q) ||
-      r.location.toLowerCase().includes(q) ||
-      r.cuisine.some((c) => c.toLowerCase().includes(q))
-  );
-}
-
-// Returns { restaurants, source: 'places' | 'static' }.
+// Returns { restaurants, source: 'places' }. Empty query -> empty results
+// (the search screen shows a "start typing" prompt instead of a catalog).
 // `location` is "lat,lng" (device GPS) or free text ("Chennai"); may be empty.
 export async function searchRestaurants(query = '', location = '') {
-  if (PLACES_ENABLED && query.trim()) {
-    try {
-      const token = await getToken();
-      const data = await withRetry(() =>
-        withTimeout(callDiscovery({ action: 'search', query, location, limit: 12 }, token), 16000)
-      );
-      if (data.restaurants?.length) {
-        return { restaurants: data.restaurants.map((r) => withImage(r, token)), source: 'places' };
-      }
-    } catch {
-      // fall through to static
-    }
+  if (!PLACES_ENABLED || !query.trim()) {
+    return { restaurants: [], source: 'places' };
   }
-  return { restaurants: filterStatic(query), source: 'static' };
+  const token = await getToken();
+  const data = await withRetry(() =>
+    withTimeout(callDiscovery({ action: 'search', query, location, limit: 12 }, token), 16000)
+  );
+  return {
+    restaurants: (data.restaurants || []).map((r) => withImage(r, token)),
+    source: 'places',
+  };
 }
 
-// Returns a single restaurant (with dishes for static; empty dishes for Places).
+// Returns a single restaurant by place id (empty dishes — Places has no menus).
 export async function getRestaurant(id) {
-  if (!id) return null;
-  if (isStaticId(id)) return staticRestaurants.find((r) => r.id === id) || null;
-
-  if (PLACES_ENABLED) {
-    try {
-      const token = await getToken();
-      const data = await withRetry(() =>
-        withTimeout(callDiscovery({ action: 'details', placeId: id }, token), 16000)
-      );
-      if (data.restaurant) return withImage(data.restaurant, token);
-    } catch {
-      // fall through
-    }
-  }
-  return staticRestaurants.find((r) => r.id === id) || null;
+  if (!id || !PLACES_ENABLED) return null;
+  const token = await getToken();
+  const data = await withRetry(() =>
+    withTimeout(callDiscovery({ action: 'details', placeId: id }, token), 16000)
+  );
+  return data.restaurant ? withImage(data.restaurant, token) : null;
 }
 
 export { PLACES_ENABLED };

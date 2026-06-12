@@ -106,9 +106,9 @@ export default function RestaurantDetailScreen() {
           )}
 
           <div style={styles.dishesSection}>
-            <h3 style={styles.dishesTitle}>Dishes</h3>
+            <h3 style={styles.dishesTitle}>Log a bite</h3>
             <p style={styles.dishesSub}>
-              {restaurant.dishes?.length ? 'Select a dish to rate and log' : 'Enter the dish you want to log'}
+              {restaurant.dishes?.length ? 'Pick a dish to rate and log' : 'What did you devour here?'}
             </p>
             {(restaurant.dishes || []).map((dish) => (
               <div key={dish.id} style={styles.dishRow} onClick={() => navigate(`/log/${restaurant.id}/${dish.id}`)}>
@@ -130,7 +130,7 @@ export default function RestaurantDetailScreen() {
               if (!remembered.length) return null;
               return (
                 <div style={styles.rememberedWrap}>
-                  <p style={styles.rememberedLabel}>Your dishes here</p>
+                  <p style={styles.rememberedLabel}>Your greatest hits here</p>
                   <div style={styles.rememberedChips}>
                     {remembered.map((name) => (
                       <button
@@ -152,7 +152,7 @@ export default function RestaurantDetailScreen() {
             <div style={styles.customRow}>
               <input
                 style={styles.customInput}
-                placeholder="Dish name (e.g. Mutton Biryani)"
+                placeholder="Type it... (e.g. Mutton Biryani)"
                 value={customDish}
                 onChange={(e) => setCustomDish(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && logCustomDish()}
@@ -176,32 +176,33 @@ export default function RestaurantDetailScreen() {
 }
 
 const styles = {
-  container: { height: '100vh', display: 'flex', flexDirection: 'column', background: colors.offWhite },
+  container: { height: '100vh', display: 'flex', flexDirection: 'column', background: colors.redBlush },
   header: {
-    background: colors.brg,
+    background: `linear-gradient(135deg, ${colors.brg} 0%, ${colors.brgDeep} 100%)`,
     padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     flexShrink: 0,
+    borderBottom: `2px solid ${colors.gold}`,
   },
   iconBtn: { width: '40px', height: '40px', borderRadius: '20px', background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 },
   headerTitle: { fontSize: '18px', fontWeight: 700, color: colors.white, margin: 0, flex: 1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   center: { flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' },
   body: { flex: 1, overflow: 'auto' },
   hero: { width: '100%', height: '200px', objectFit: 'cover', background: colors.lightGray, display: 'block' },
-  infoSection: { background: colors.white, padding: '20px' },
-  name: { fontSize: '24px', fontWeight: 800, color: colors.dark, margin: 0 },
+  infoSection: { background: colors.white, padding: '20px', borderRadius: '0 0 24px 24px', boxShadow: '0 4px 12px rgba(126,27,45,0.08)' },
+  name: { fontFamily: "'Playfair Display', serif", fontSize: '24px', fontWeight: 800, color: colors.dark, margin: 0 },
   location: { fontSize: '15px', color: colors.gray, marginTop: '6px', fontWeight: 500 },
   address: { fontSize: '13px', color: colors.mediumGray, marginTop: '4px', lineHeight: '18px' },
   cuisineRow: { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' },
   cuisineChip: { background: colors.brgLight, color: colors.brg, fontSize: '12px', fontWeight: 600, padding: '5px 10px', borderRadius: radius.sm },
   price: { fontSize: '15px', fontWeight: 700, color: colors.brg, marginTop: '12px' },
-  menuSection: { background: colors.white, padding: '20px', marginTop: '10px' },
+  menuSection: { background: colors.white, padding: '20px', margin: '12px 12px 0', borderRadius: '20px', border: `1px solid ${colors.redTint}` },
   menuHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' },
   menuTitle: { fontSize: '20px', fontWeight: 700, color: colors.dark, margin: 0 },
   menuImg: { width: '100%', height: '180px', borderRadius: radius.md, objectFit: 'cover', background: colors.lightGray },
-  dishesSection: { background: colors.white, padding: '20px', marginTop: '10px' },
+  dishesSection: { background: colors.white, padding: '20px', margin: '12px 12px 0', borderRadius: '20px', border: `1px solid ${colors.redTint}` },
   dishesTitle: { fontSize: '20px', fontWeight: 700, color: colors.dark, margin: 0 },
   dishesSub: { fontSize: '13px', color: colors.gray, marginTop: '2px', marginBottom: '14px' },
   dishRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: `1px solid ${colors.offWhite}`, cursor: 'pointer' },
@@ -211,8 +212,8 @@ const styles = {
   rememberedWrap: { marginTop: '16px' },
   rememberedLabel: { fontSize: '13px', fontWeight: 700, color: colors.gray, margin: '0 0 8px' },
   rememberedChips: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
-  rememberedChip: { display: 'inline-flex', alignItems: 'center', background: colors.brgLight, color: colors.brg, border: 'none', borderRadius: '20px', padding: '8px 14px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' },
+  rememberedChip: { display: 'inline-flex', alignItems: 'center', background: colors.redTint, color: colors.racingRedDeep, border: 'none', borderRadius: '20px', padding: '8px 14px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' },
   customRow: { display: 'flex', gap: '8px', alignItems: 'center', marginTop: '16px' },
   customInput: { flex: 1, padding: '12px 14px', background: colors.offWhite, border: '1.5px solid #D0D0D0', borderRadius: '10px', fontSize: '14px', color: colors.dark, outline: 'none', minWidth: 0 },
-  customBtn: { display: 'flex', alignItems: 'center', background: colors.brg, color: colors.white, border: 'none', padding: '12px 16px', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', flexShrink: 0 },
+  customBtn: { display: 'flex', alignItems: 'center', background: `linear-gradient(135deg, ${colors.racingRed} 0%, ${colors.racingRedDeep} 100%)`, color: colors.white, border: 'none', padding: '12px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', flexShrink: 0, boxShadow: '0 3px 10px rgba(164,36,59,0.3)' },
 };
