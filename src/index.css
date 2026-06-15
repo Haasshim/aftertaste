@@ -1,22 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400;1,700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap');
 
 :root {
-  --brg: #004225;
-  --brg-deep: #00301B;
-  --brg-light: #E8F0EB;
-  --brg-20: rgba(0, 66, 37, 0.2);
-  --racing-red: #76202F;
-  --racing-red-deep: #4F1320;
-  --red-blush: #F4EDE0;
-  --red-tint: #E3D5B8;
-  --white: #FFFEFA;
-  --off-white: #FAF5EB;
-  --cream: #FFF8F0;
-  --dark: #221814;
-  --gray: #6E6356;
-  --light-gray: #E5DCCB;
-  --medium-gray: #A2937E;
-  --gold: #C2A14D;
+  --brg: #003B2F;
+  --brg-deep: #0F2A24;
+  --brg-light: #E4EBE7;
+  --brg-20: rgba(0, 59, 47, 0.2);
+  --racing-red: #003B2F;
+  --racing-red-deep: #0F2A24;
+  --red-blush: #F4EFE3;
+  --red-tint: #E7DCC4;
+  --white: #FFFDF7;
+  --off-white: #ECE6D8;
+  --cream: #F4EFE3;
+  --dark: #2E2E2E;
+  --gray: #6E685D;
+  --light-gray: #DAD2C2;
+  --medium-gray: #9C9486;
+  --gold: #C2A46F;
   --red: #C0392B;
   --orange: #E67E22;
   --green: #27AE60;
@@ -30,8 +30,11 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: radial-gradient(ellipse at top, #0A2418 0%, #051209 70%);
+  /* Nunito (friendly rounded sans) for body/UI; Playfair Display for headings;
+     Pinyon Script for the "Aftertaste" wordmark. Everything inherits Nunito
+     unless it sets its own family. */
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: radial-gradient(ellipse at top, #0F2A24 0%, #06140F 70%);
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -47,9 +50,9 @@ body {
   overflow: hidden;
   /* Parchment with a faint warm glow at the top — feels lit, not flat. */
   background:
-    radial-gradient(ellipse 120% 50% at 50% 0%, rgba(194,161,77,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 120% 50% at 50% 0%, rgba(194,164,111,0.14) 0%, transparent 60%),
     var(--red-blush);
-  box-shadow: 0 0 80px rgba(0,0,0,0.55);
+  box-shadow: 0 0 80px rgba(0,0,0,0.5);
 }
 
 @media (max-width: 430px) {
@@ -115,7 +118,7 @@ button {
 }
 .card-pop:hover {
   transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 10px 26px rgba(79, 19, 32, 0.18), 0 0 0 1px rgba(194, 161, 77, 0.45);
+  box-shadow: 0 10px 26px rgba(15, 42, 36, 0.22), 0 0 0 1px rgba(194, 164, 111, 0.6);
 }
 .card-pop:active {
   transform: translateY(0) scale(0.985);
@@ -132,7 +135,7 @@ button {
 }
 .fab-fun:hover {
   animation: wiggle 0.4s ease;
-  box-shadow: 0 8px 26px rgba(79, 19, 32, 0.5), 0 0 0 3px rgba(194, 161, 77, 0.5);
+  box-shadow: 0 8px 26px rgba(15, 42, 36, 0.45), 0 0 0 3px rgba(194, 164, 111, 0.65);
 }
 
 /* A slow golden shimmer that sweeps across gilded elements. */
@@ -141,7 +144,7 @@ button {
   100% { background-position: 200% center; }
 }
 .gilded {
-  background-image: linear-gradient(100deg, transparent 30%, rgba(217,188,107,0.35) 50%, transparent 70%);
+  background-image: linear-gradient(100deg, transparent 30%, rgba(212,188,138,0.45) 50%, transparent 70%);
   background-size: 200% 100%;
   animation: shimmer 3.2s ease-in-out infinite;
 }

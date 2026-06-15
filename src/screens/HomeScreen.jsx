@@ -66,7 +66,7 @@ export default function HomeScreen() {
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <h1 style={styles.headerTitle}>aftertaste</h1>
+          <h1 style={styles.headerTitle}>Aftertaste</h1>
           <p style={styles.headerSub}>every bite, remembered</p>
         </div>
         <div style={styles.headerRight}>
@@ -166,14 +166,15 @@ const styles = {
     borderBottom: `2px solid ${colors.gold}`,
   },
   headerTitle: {
-    fontFamily: font.brand,
-    fontSize: '28px',
-    fontWeight: 700,
+    fontFamily: font.script,
+    fontSize: '66px',
+    fontWeight: 400,
     color: colors.white,
-    letterSpacing: '1px',
+    letterSpacing: '0.5px',
     margin: 0,
+    lineHeight: 1,
   },
-  headerSub: { fontSize: '12px', color: 'rgba(217,188,107,0.9)', marginTop: '2px', fontStyle: 'italic', fontFamily: font.brand },
+  headerSub: { fontSize: '13px', color: colors.goldBright, marginTop: '14px', fontStyle: 'italic', fontFamily: font.brand },
   headerRight: { display: 'flex', alignItems: 'center', gap: '8px' },
   statPill: {
     display: 'flex',
@@ -249,15 +250,18 @@ const styles = {
     whiteSpace: 'nowrap',
   },
   avgBadge: {
+    width: '78px',
+    height: '60px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: '14px',
-    padding: '7px 12px',
+    padding: '4px 6px',
     flexShrink: 0,
   },
-  avgNum: { fontSize: '18px', fontWeight: 800, color: colors.white, lineHeight: 1.1 },
-  avgLabel: { fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap' },
+  avgNum: { fontSize: '19px', fontWeight: 800, color: colors.white, lineHeight: 1.1 },
+  avgLabel: { fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.15, marginTop: '2px' },
   cardBottom: { display: 'flex', alignItems: 'center', gap: '10px', marginTop: '14px' },
   countChip: {
     background: colors.redTint,
@@ -280,7 +284,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    boxShadow: '0 6px 18px rgba(79,19,32,0.45)',
+    boxShadow: '0 6px 18px rgba(15,42,36,0.45)',
     cursor: 'pointer',
     zIndex: 10,
   },

@@ -11,7 +11,7 @@ import { colors, radius } from '../theme/theme';
 const FALLBACK_IMG =
   'data:image/svg+xml;utf8,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><rect width="400" height="200" fill="#E8F0EB"/></svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><rect width="400" height="200" fill="#E4EBE7"/></svg>`
   );
 
 export default function RestaurantDetailScreen() {
@@ -191,7 +191,7 @@ const styles = {
   center: { flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' },
   body: { flex: 1, overflow: 'auto' },
   hero: { width: '100%', height: '200px', objectFit: 'cover', background: colors.lightGray, display: 'block' },
-  infoSection: { background: colors.white, padding: '20px', borderRadius: '0 0 24px 24px', boxShadow: '0 4px 12px rgba(126,27,45,0.08)' },
+  infoSection: { background: colors.white, padding: '20px', borderRadius: '0 0 24px 24px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' },
   name: { fontFamily: "'Playfair Display', serif", fontSize: '24px', fontWeight: 800, color: colors.dark, margin: 0 },
   location: { fontSize: '15px', color: colors.gray, marginTop: '6px', fontWeight: 500 },
   address: { fontSize: '13px', color: colors.mediumGray, marginTop: '4px', lineHeight: '18px' },
@@ -214,6 +214,6 @@ const styles = {
   rememberedChips: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
   rememberedChip: { display: 'inline-flex', alignItems: 'center', background: colors.redTint, color: colors.racingRedDeep, border: 'none', borderRadius: '20px', padding: '8px 14px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' },
   customRow: { display: 'flex', gap: '8px', alignItems: 'center', marginTop: '16px' },
-  customInput: { flex: 1, padding: '12px 14px', background: colors.offWhite, border: '1.5px solid #D0D0D0', borderRadius: '10px', fontSize: '14px', color: colors.dark, outline: 'none', minWidth: 0 },
-  customBtn: { display: 'flex', alignItems: 'center', background: `linear-gradient(135deg, ${colors.racingRed} 0%, ${colors.racingRedDeep} 100%)`, color: colors.white, border: 'none', padding: '12px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', flexShrink: 0, boxShadow: '0 3px 10px rgba(164,36,59,0.3)' },
+  customInput: { flex: 1, padding: '12px 14px', background: colors.offWhite, border: `1.5px solid ${colors.lightGray}`, borderRadius: '10px', fontSize: '14px', color: colors.dark, outline: 'none', minWidth: 0 },
+  customBtn: { display: 'flex', alignItems: 'center', background: `linear-gradient(135deg, ${colors.racingRed} 0%, ${colors.racingRedDeep} 100%)`, color: colors.white, border: 'none', padding: '12px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', flexShrink: 0, boxShadow: '0 3px 10px rgba(15,42,36,0.3)' },
 };

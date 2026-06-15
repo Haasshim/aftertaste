@@ -70,24 +70,21 @@ export default function DishDetailScreen() {
       </div>
 
       <div style={styles.body}>
-        <div style={styles.ratingHero}>
+        <div style={styles.heroCard}>
           <RatingSummary log={log} variant="detail" />
-        </div>
-
-        <div style={styles.dishSection}>
           <h2 style={styles.dishName}>{log.dishName}</h2>
           {log.dishCategory && <p style={styles.dishCat}>{log.dishCategory}</p>}
         </div>
 
         <div style={styles.infoRow}>
-          <Icon name="menu" size={18} color={colors.brg} />
+          <Icon name="menu" size={18} color={colors.goldBright} />
           <div style={{ marginLeft: '12px' }}>
             <p style={styles.infoTitle}>{log.restaurantName}</p>
           </div>
         </div>
 
-        <div style={{ ...styles.infoRow, marginTop: '2px' }}>
-          <Icon name="calendar" size={18} color={colors.brg} />
+        <div style={{ ...styles.infoRow, marginTop: '10px' }}>
+          <Icon name="calendar" size={18} color={colors.goldBright} />
           <div style={{ marginLeft: '12px' }}>
             <p style={styles.infoTitle}>{formatDate(log.date)}</p>
             <p style={styles.infoSub}>{log.day}</p>
@@ -131,7 +128,7 @@ export default function DishDetailScreen() {
             <div style={styles.voiceList}>
               {log.voiceClips.map((clip, i) => (
                 <div key={i} style={styles.voiceRow}>
-                  <Icon name="mic" size={18} color={colors.brg} />
+                  <Icon name="mic" size={18} color={colors.goldBright} />
                   <audio controls src={clip.data} style={styles.detailAudio} />
                 </div>
               ))}
@@ -145,7 +142,7 @@ export default function DishDetailScreen() {
             <div style={styles.linksList}>
               {log.links.map((url, i) => (
                 <a key={i} href={url} target="_blank" rel="noopener noreferrer" style={styles.detailLink}>
-                  <Icon name="link" size={16} color={colors.brg} />
+                  <Icon name="link" size={16} color={colors.goldBright} />
                   <span style={styles.detailLinkText}>{url}</span>
                   <Icon name="external-link" size={14} color={colors.mediumGray} />
                 </a>
@@ -216,29 +213,62 @@ const styles = {
     padding: 0,
   },
   headerTitle: { fontSize: '18px', fontWeight: 700, color: colors.white, margin: 0 },
-  body: { flex: 1, overflow: 'auto' },
-  ratingHero: { background: colors.white, padding: '30px' },
-  dishSection: { background: colors.white, padding: '0 20px 20px', textAlign: 'center', borderBottom: `1px solid ${colors.offWhite}` },
-  dishName: { fontSize: '26px', fontWeight: 800, color: colors.dark, margin: 0 },
-  dishCat: { fontSize: '14px', color: colors.mediumGray, marginTop: '4px' },
-  infoRow: { display: 'flex', alignItems: 'center', background: colors.white, marginTop: '10px', padding: '18px' },
-  infoTitle: { fontSize: '16px', fontWeight: 700, color: colors.dark, margin: 0 },
-  infoSub: { fontSize: '13px', color: colors.gray, marginTop: '2px' },
-  stampSection: { background: colors.white, marginTop: '10px', padding: '18px' },
-  sectionLabel: { fontSize: '13px', fontWeight: 700, color: colors.gray, letterSpacing: '0.5px', marginBottom: '12px' },
+  body: { flex: 1, overflow: 'auto', padding: '14px 12px 0' },
+  // Shared oxblood panel look (used across every section card).
+  heroCard: {
+    background: `linear-gradient(160deg, ${colors.racingRed} 0%, ${colors.racingRedDeep} 100%)`,
+    padding: '28px 24px 26px',
+    borderRadius: '20px',
+    border: `1.5px solid ${colors.gold}`,
+    marginBottom: '12px',
+    textAlign: 'center',
+  },
+  dishName: { fontFamily: "'Playfair Display', serif", fontSize: '26px', fontWeight: 800, color: colors.white, margin: '24px 0 0' },
+  dishCat: { fontSize: '14px', color: colors.goldBright, marginTop: '4px', fontWeight: 600 },
+  infoRow: {
+    display: 'flex',
+    alignItems: 'center',
+    background: `linear-gradient(135deg, ${colors.racingRed} 0%, ${colors.racingRedDeep} 100%)`,
+    padding: '16px 18px',
+    borderRadius: '16px',
+    border: `1.5px solid ${colors.gold}`,
+    marginBottom: '10px',
+  },
+  infoTitle: { fontSize: '16px', fontWeight: 700, color: colors.white, margin: 0 },
+  infoSub: { fontSize: '13px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' },
+  stampSection: {
+    background: `linear-gradient(135deg, ${colors.racingRed} 0%, ${colors.racingRedDeep} 100%)`,
+    padding: '18px',
+    borderRadius: '16px',
+    border: `1.5px solid ${colors.gold}`,
+    marginBottom: '10px',
+  },
+  sectionLabel: { fontSize: '12px', fontWeight: 700, color: colors.goldBright, letterSpacing: '1px', marginBottom: '12px' },
   stampRow: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
-  commentSection: { background: colors.white, marginTop: '10px', padding: '18px' },
-  commentBox: { background: colors.cream, padding: '16px', borderRadius: radius.md, borderLeft: `4px solid ${colors.brg}` },
-  commentText: { fontSize: '16px', color: colors.dark, fontStyle: 'italic', lineHeight: '24px', margin: 0 },
-  attachmentSection: { background: colors.white, marginTop: '10px', padding: '18px' },
+  commentSection: {
+    background: `linear-gradient(135deg, ${colors.racingRed} 0%, ${colors.racingRedDeep} 100%)`,
+    padding: '18px',
+    borderRadius: '16px',
+    border: `1.5px solid ${colors.gold}`,
+    marginBottom: '10px',
+  },
+  commentBox: { background: 'rgba(0,0,0,0.18)', padding: '16px', borderRadius: radius.md, borderLeft: `4px solid ${colors.goldBright}` },
+  commentText: { fontSize: '16px', color: colors.white, fontStyle: 'italic', lineHeight: '24px', margin: 0 },
+  attachmentSection: {
+    background: `linear-gradient(135deg, ${colors.racingRed} 0%, ${colors.racingRedDeep} 100%)`,
+    padding: '18px',
+    borderRadius: '16px',
+    border: `1.5px solid ${colors.gold}`,
+    marginBottom: '10px',
+  },
   photoGrid: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
-  detailPhoto: { width: '100px', height: '100px', objectFit: 'cover', borderRadius: '10px' },
+  detailPhoto: { width: '100px', height: '100px', objectFit: 'cover', borderRadius: '10px', border: `1px solid ${colors.gold}` },
   voiceList: { display: 'flex', flexDirection: 'column', gap: '8px' },
-  voiceRow: { display: 'flex', alignItems: 'center', gap: '10px', background: colors.offWhite, borderRadius: '10px', padding: '10px 12px' },
+  voiceRow: { display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(0,0,0,0.18)', borderRadius: '10px', padding: '10px 12px' },
   detailAudio: { flex: 1, height: '36px' },
   linksList: { display: 'flex', flexDirection: 'column', gap: '8px' },
-  detailLink: { display: 'flex', alignItems: 'center', gap: '10px', background: colors.offWhite, borderRadius: '10px', padding: '12px 14px', textDecoration: 'none' },
-  detailLinkText: { flex: 1, fontSize: '14px', color: colors.brg, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  detailLink: { display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(0,0,0,0.18)', borderRadius: '10px', padding: '12px 14px', textDecoration: 'none' },
+  detailLinkText: { flex: 1, fontSize: '14px', color: colors.goldBright, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   shareSection: { padding: '18px', textAlign: 'center' },
   shareBtn: {
     display: 'inline-flex',
@@ -251,7 +281,7 @@ const styles = {
     padding: '14px 28px',
     fontSize: '15px',
     fontWeight: 700,
-    boxShadow: '0 4px 14px rgba(79,19,32,0.35)',
+    boxShadow: '0 4px 14px rgba(15,42,36,0.35)',
   },
   shareHint: { fontSize: '12px', color: colors.mediumGray, marginTop: '10px', lineHeight: '18px' },
   shareNote: { fontSize: '13px', color: colors.brg, fontWeight: 600, marginTop: '8px' },

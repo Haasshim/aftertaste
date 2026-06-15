@@ -29,7 +29,7 @@ export default function RatingSummary({ log, variant = 'badge' }) {
         <span style={{ ...styles.circleNum, color: c }}>{overall ?? '–'}</span>
         <span style={styles.circleOf}>/10</span>
       </div>
-      <p style={{ ...styles.circleLabel, color: c }}>{ratingLabel(overall)}</p>
+      <p style={{ ...styles.circleLabel, color: colors.goldBright }}>{ratingLabel(overall)}</p>
 
       {facets.length > 0 && (
         <div style={styles.facetList}>
@@ -41,11 +41,11 @@ export default function RatingSummary({ log, variant = 'badge' }) {
                   style={{
                     ...styles.barFill,
                     width: `${f.score * 10}%`,
-                    background: ratingColor(f.score),
+                    background: colors.goldBright,
                   }}
                 />
               </div>
-              <span style={{ ...styles.facetScore, color: ratingColor(f.score) }}>
+              <span style={{ ...styles.facetScore, color: colors.white }}>
                 {f.score}
               </span>
             </div>
@@ -94,12 +94,12 @@ const styles = {
     marginRight: 'auto',
   },
   facetRow: { display: 'flex', alignItems: 'center', gap: '10px' },
-  facetLabel: { fontSize: '13px', fontWeight: 600, color: colors.gray, width: '90px', flexShrink: 0 },
+  facetLabel: { fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.85)', width: '90px', flexShrink: 0 },
   barTrack: {
     flex: 1,
     height: '8px',
     borderRadius: '4px',
-    background: colors.lightGray,
+    background: 'rgba(255,255,255,0.22)',
     overflow: 'hidden',
   },
   barFill: { height: '100%', borderRadius: '4px' },

@@ -210,13 +210,13 @@ export default function AddDishLogScreen() {
                   aria-pressed={sel}
                   style={{
                     ...styles.stampBtn,
-                    background: sel ? stamp.color + '20' : colors.offWhite,
-                    border: sel ? `1.5px solid ${stamp.color}` : '1.5px solid transparent',
-                    color: sel ? stamp.color : colors.gray,
+                    background: sel ? colors.gold : colors.offWhite,
+                    border: sel ? `1.5px solid ${colors.gold}` : `1.5px solid ${colors.lightGray}`,
+                    color: sel ? colors.racingRedDeep : colors.gray,
                   }}
                   onClick={() => toggleStamp(stamp.id)}
                 >
-                  <Icon name={stamp.icon} size={15} color={sel ? stamp.color : colors.gray} />
+                  <Icon name={stamp.icon} size={15} color={sel ? colors.racingRedDeep : colors.gray} />
                   {stamp.label}
                 </button>
               );
@@ -429,7 +429,7 @@ const styles = {
     width: '100%',
     padding: '14px 16px',
     background: colors.offWhite,
-    border: '1.5px dashed #D0D0D0',
+    border: `1.5px dashed ${colors.lightGray}`,
     borderRadius: radius.md,
     cursor: 'pointer',
   },
@@ -462,7 +462,7 @@ const styles = {
     flex: 1,
     padding: '12px 14px',
     background: colors.offWhite,
-    border: '1.5px solid #D0D0D0',
+    border: `1.5px solid ${colors.lightGray}`,
     borderRadius: '10px',
     fontSize: '14px',
     color: colors.dark,

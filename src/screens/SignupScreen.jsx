@@ -48,7 +48,7 @@ export default function SignupScreen() {
     return (
       <div style={styles.container}>
         <div style={styles.topSection}>
-          <h1 style={styles.brand}>aftertaste</h1>
+          <h1 style={styles.brand}>Aftertaste</h1>
         </div>
         <div style={styles.formSection}>
           <h2 style={styles.welcome}>Check your inbox</h2>
@@ -64,8 +64,13 @@ export default function SignupScreen() {
   return (
     <div style={styles.container}>
       <div style={styles.topSection}>
-        <h1 style={styles.brand}>aftertaste</h1>
+        <h1 style={styles.brand}>Aftertaste</h1>
         <p style={styles.tagline}>Remember every bite.</p>
+        <div style={styles.flourish}>
+          <span style={styles.flourishLine} />
+          <span style={styles.flourishDiamond} />
+          <span style={styles.flourishLine} />
+        </div>
       </div>
 
       <div style={styles.formSection}>
@@ -123,17 +128,21 @@ export default function SignupScreen() {
 }
 
 const styles = {
-  container: { height: '100vh', display: 'flex', flexDirection: 'column', background: colors.white, overflow: 'auto' },
+  container: { height: '100vh', display: 'flex', flexDirection: 'column', background: colors.cream, overflow: 'auto' },
   topSection: {
-    background: colors.brg,
+    background: `linear-gradient(160deg, ${colors.brg} 0%, ${colors.brgDeep} 100%)`,
     padding: 'calc(env(safe-area-inset-top, 0px) + 60px) 24px 40px',
     textAlign: 'center',
     flexShrink: 0,
+    borderBottom: `2px solid ${colors.gold}`,
   },
-  brand: { fontFamily: font.brand, fontSize: '36px', fontWeight: 700, color: colors.white, letterSpacing: '2px', margin: 0 },
-  tagline: { fontFamily: font.brand, fontSize: '14px', fontStyle: 'italic', color: 'rgba(255,255,255,0.7)', marginTop: '6px' },
-  formSection: { flex: 1, padding: '36px 30px', overflow: 'auto' },
-  welcome: { fontSize: '26px', fontWeight: 700, color: colors.dark, margin: '0 0 4px' },
+  brand: { fontFamily: font.script, fontSize: '92px', fontWeight: 400, color: colors.white, letterSpacing: '1px', margin: 0, lineHeight: 1.05 },
+  tagline: { fontFamily: font.brand, fontSize: '15px', fontStyle: 'italic', color: colors.goldBright, marginTop: '16px' },
+  flourish: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '18px' },
+  flourishLine: { width: '46px', height: '1.5px', background: colors.gold, opacity: 0.85 },
+  flourishDiamond: { width: '8px', height: '8px', background: colors.gold, transform: 'rotate(45deg)' },
+  formSection: { flex: 1, padding: '34px 30px', overflow: 'auto' },
+  welcome: { fontFamily: font.brand, fontSize: '30px', fontWeight: 800, color: colors.brg, margin: '0 0 4px' },
   subtitle: { fontSize: '15px', color: colors.gray, marginBottom: '30px', lineHeight: '22px' },
   inputGroup: { marginBottom: '18px' },
   label: { display: 'block', fontSize: '13px', fontWeight: 600, color: colors.gray, marginBottom: '6px', letterSpacing: '0.5px' },
@@ -150,9 +159,9 @@ const styles = {
   error: { color: colors.red, fontSize: '14px', marginBottom: '10px' },
   signupBtn: {
     width: '100%',
-    background: colors.brg,
+    background: `linear-gradient(160deg, ${colors.brg} 0%, ${colors.brgDeep} 100%)`,
     color: colors.white,
-    border: 'none',
+    border: `1.5px solid ${colors.goldBright}`,
     borderRadius: radius.md,
     padding: '16px',
     fontSize: '17px',
@@ -163,8 +172,9 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    boxShadow: '0 4px 14px rgba(15,42,36,0.25)',
   },
   loginRow: { textAlign: 'center', marginTop: '22px', fontSize: '15px', color: colors.gray },
-  loginLink: { color: colors.brg, fontWeight: 700, textDecoration: 'none' },
-  backLink: { color: colors.brg, fontWeight: 700, textDecoration: 'none', fontSize: '15px' },
+  loginLink: { color: colors.brg, fontWeight: 700, textDecoration: 'underline', textDecorationColor: colors.gold, textUnderlineOffset: '3px' },
+  backLink: { color: colors.brg, fontWeight: 700, textDecoration: 'underline', textDecorationColor: colors.gold, textUnderlineOffset: '3px', fontSize: '15px' },
 };

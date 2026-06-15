@@ -33,8 +33,8 @@ export default class ErrorBoundary extends React.Component {
           background: colors.offWhite,
         }}
       >
-        <h1 style={{ fontFamily: font.brand, fontSize: '32px', color: colors.brg, margin: 0 }}>
-          aftertaste
+        <h1 style={{ fontFamily: font.script, fontSize: '76px', color: colors.brg, margin: 0, lineHeight: 1 }}>
+          Aftertaste
         </h1>
         <p style={{ fontSize: '17px', fontWeight: 700, color: colors.dark, marginTop: '20px' }}>
           Something broke unexpectedly

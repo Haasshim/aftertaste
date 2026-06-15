@@ -4,7 +4,7 @@
 // `dishes` array — the UI lets you log a custom dish name.
 import { supabase, isSupabaseConfigured } from './supabase';
 import { withRetry, withTimeout } from './dataClient';
-import { toAppError } from './errors';
+import { AppError, ErrorTypes, toAppError } from './errors';
 
 const PLACES_ENABLED = import.meta.env.VITE_ENABLE_PLACES === 'true' && isSupabaseConfigured;
 
@@ -29,13 +29,37 @@ function withImage(restaurant, token) {
 }
 
 async function callDiscovery(body, token) {
-  if (!token) throw toAppError({ status: 401 });
+  if (!token) {
+    throw new AppError(ErrorTypes.AUTH, 'Please sign in again to search restaurants.', { retryable: false });
+  }
   const { data, error } = await supabase.functions.invoke('places-search', {
     body,
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (error) throw error;
-  if (!data?.ok) throw toAppError({ status: 502, message: data?.error?.message });
+  if (error) {
+    // functions.invoke reports any non-2xx as a generic "non-2xx status code"
+    // error. Dig the real status/message out of the function's JSON response so
+    // we can show something actionable instead of that raw string.
+    let status = 502;
+    try {
+      if (error.context && typeof error.context.json === 'function') {
+        status = error.context.status ?? status;
+        const detail = await error.context.json();
+        if (status === 401 || detail?.error?.message?.toLowerCase?.().includes('session')) {
+          throw new AppError(ErrorTypes.AUTH, 'Your session expired. Sign out and back in, then search again.', { retryable: false });
+        }
+      }
+    } catch (inner) {
+      if (inner instanceof AppError) throw inner;
+    }
+    if (status === 401) {
+      throw new AppError(ErrorTypes.AUTH, 'Your session expired. Sign out and back in, then search again.', { retryable: false });
+    }
+    throw new AppError(ErrorTypes.SERVER, 'Restaurant search is unavailable right now. Please try again in a moment.', { retryable: true, cause: error });
+  }
+  if (!data?.ok) {
+    throw new AppError(ErrorTypes.SERVER, data?.error?.message || 'Restaurant search failed. Please try again.', { retryable: true });
+  }
   return data;
 }
 

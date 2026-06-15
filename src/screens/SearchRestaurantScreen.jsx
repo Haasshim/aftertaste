@@ -10,7 +10,7 @@ import { colors, font, radius, shadow } from '../theme/theme';
 const FALLBACK_IMG =
   'data:image/svg+xml;utf8,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="65" height="65"><rect width="65" height="65" fill="#F2D3CB"/></svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" width="65" height="65"><rect width="65" height="65" fill="#E4EBE7"/></svg>`
   );
 
 const LOCATION_KEY = 'aftertaste:lastLocation';
@@ -147,9 +147,9 @@ export default function SearchRestaurantScreen() {
             <div style={styles.emptyBlob}>
               <Icon name="search" size={40} color={colors.racingRed} strokeWidth={1.5} />
             </div>
-            <h3 style={styles.emptyTitle}>Hunt down your spot</h3>
+            <h3 style={styles.emptyTitle}>Find your spot</h3>
             <p style={styles.emptyText}>
-              Type a restaurant or cuisine and we will find it anywhere in India. Drop a city or hit Use GPS to keep it local.
+              Just type a restaurant and we will find the best match for you! Drop a city or hit Use GPS to keep it local.
             </p>
           </div>
         ) : results.length === 0 ? (

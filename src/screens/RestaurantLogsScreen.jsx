@@ -84,7 +84,7 @@ export default function RestaurantLogsScreen() {
               </div>
               {avg != null && (
                 <div style={styles.heroStat}>
-                  <span style={{ ...styles.heroStatNum, color: ratingColor(Math.round(avg)) }}>{avg}</span>
+                  <span style={styles.heroStatNum}>{avg}</span>
                   <span style={styles.heroStatLabel}>{ratingLabel(Math.round(avg))}</span>
                 </div>
               )}
@@ -167,19 +167,19 @@ const styles = {
   center: { flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' },
   body: { flex: 1, overflow: 'auto', padding: '16px' },
   hero: {
-    background: colors.white,
+    background: `linear-gradient(135deg, ${colors.racingRed} 0%, ${colors.racingRedDeep} 100%)`,
     borderRadius: '20px',
-    padding: '20px',
+    padding: '22px',
     marginBottom: '20px',
-    boxShadow: shadow.card,
-    border: `1px solid ${colors.redTint}`,
+    boxShadow: '0 6px 18px rgba(15,42,36,0.35)',
+    border: `1.5px solid ${colors.gold}`,
     textAlign: 'center',
   },
-  heroName: { fontFamily: font.brand, fontSize: '24px', fontWeight: 800, color: colors.dark, margin: 0 },
-  heroStats: { display: 'flex', justifyContent: 'center', gap: '32px', marginTop: '14px' },
-  heroStat: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
-  heroStatNum: { fontSize: '26px', fontWeight: 800, color: colors.racingRed, lineHeight: 1.1 },
-  heroStatLabel: { fontSize: '12px', color: colors.gray, marginTop: '2px', fontWeight: 600 },
+  heroName: { fontFamily: font.brand, fontSize: '25px', fontWeight: 800, color: colors.white, margin: 0 },
+  heroStats: { display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '16px' },
+  heroStat: { width: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  heroStatNum: { fontSize: '28px', fontWeight: 800, color: colors.goldBright, lineHeight: 1.1 },
+  heroStatLabel: { fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '2px', fontWeight: 600 },
   dayRow: { display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 2px 10px' },
   dayDot: { width: '8px', height: '8px', borderRadius: '4px', background: colors.racingRed, flexShrink: 0 },
   dayLabel: { fontSize: '13px', fontWeight: 700, color: colors.racingRedDeep, margin: 0, letterSpacing: '0.3px' },
@@ -188,7 +188,6 @@ const styles = {
     borderRadius: '16px',
     padding: '16px',
     marginBottom: '12px',
-    marginLeft: '14px',
     boxShadow: shadow.card,
     border: `1px solid ${colors.redTint}`,
     cursor: 'pointer',
@@ -206,15 +205,16 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
+    width: 'fit-content',
+    maxWidth: '100%',
+    margin: '32px auto 0',
     background: `linear-gradient(135deg, ${colors.racingRed} 0%, ${colors.racingRedDeep} 100%)`,
     color: colors.white,
-    border: 'none',
-    borderRadius: radius.lg,
-    padding: '14px',
+    border: `1.5px solid ${colors.goldBright}`,
+    borderRadius: radius.pill,
+    padding: '14px 30px',
     fontSize: '15px',
     fontWeight: 700,
-    marginTop: '10px',
-    boxShadow: '0 4px 14px rgba(164,36,59,0.3)',
+    boxShadow: '0 4px 14px rgba(15,42,36,0.3)',
   },
 };

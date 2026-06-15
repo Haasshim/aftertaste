@@ -28,7 +28,7 @@ export default function SplashScreen() {
   return (
     <div style={styles.container}>
       <h1 style={{ ...styles.title, opacity: show ? 1 : 0, transform: show ? 'translateY(0)' : 'translateY(30px)' }}>
-        aftertaste
+        Aftertaste
       </h1>
       <p style={{ ...styles.slogan, opacity: showSlogan ? 1 : 0 }}>Remember every bite.</p>
     </div>
@@ -45,13 +45,14 @@ const styles = {
     background: colors.brg,
   },
   title: {
-    fontFamily: font.brand,
-    fontSize: '48px',
-    fontWeight: 700,
+    fontFamily: font.script,
+    fontSize: '120px',
+    fontWeight: 400,
     color: colors.white,
-    letterSpacing: '2px',
+    letterSpacing: '1px',
     transition: 'all 1.2s ease',
     margin: 0,
+    lineHeight: 1.1,
   },
   slogan: {
     fontFamily: font.brand,

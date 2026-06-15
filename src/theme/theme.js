@@ -1,31 +1,35 @@
 // Design tokens for Aftertaste. Mirrors the CSS variables in index.css so inline
 // styles and CSS stay in sync. Pure JS objects — zero runtime cost.
 
+// Regal palette: deep green #003B2F, dark green #0F2A24, champagne gold
+// #C2A46F, cream #F4EFE3, charcoal #2E2E2E. Cream is the canvas, deep green
+// the brand structure (headers, FAB, detail cards), gold the metal accent,
+// charcoal the text. (Token names kept for compatibility — only values
+// changed, so every screen repalettes from this one object.)
 export const colors = {
-  brg: '#004225',          // brand green (british racing green)
-  brgDeep: '#00301B',      // darker green for gradients
-  brgLight: '#E8F0EB',
-  brg20: 'rgba(0,66,37,0.2)',
+  brg: '#003B2F',          // deep green — headers, "good" ratings
+  brgDeep: '#0F2A24',      // darker green for gradients
+  brgLight: '#E4EBE7',     // pale green tint (chips, GPS button)
+  brg20: 'rgba(0,59,47,0.2)',
 
-  // Oxblood + gold — the regal counterpart to the green.
-  racingRed: '#76202F',    // oxblood, primary red accent
-  racingRedDeep: '#4F1320',
-  redBlush: '#F4EDE0',     // parchment ivory app background
-  redTint: '#E3D5B8',      // gold-leaf borders, chips, soft fills
-  redGlow: 'rgba(118,32,47,0.18)',
+  racingRed: '#003B2F',    // (now green) primary action / detail cards / hero
+  racingRedDeep: '#0F2A24',
+  redBlush: '#F4EFE3',     // cream app background
+  redTint: '#E7DCC4',      // pale gold — soft fills, subtle borders, chips
+  redGlow: 'rgba(194,164,111,0.3)',
 
-  white: '#FFFEFA',
-  offWhite: '#FAF5EB',     // warmed to sit on the parchment background
-  cream: '#FFF8F0',
-  dark: '#221814',         // warm near-black
-  gray: '#6E6356',         // warm gray
-  lightGray: '#E5DCCB',
-  mediumGray: '#A2937E',
-  gold: '#C2A14D',
-  goldBright: '#D9BC6B',
-  red: '#C0392B',
-  orange: '#E67E22',
-  green: '#27AE60',
+  white: '#FFFDF7',        // warm near-white card surface / light text on green
+  offWhite: '#ECE6D8',     // slightly deeper cream for inset fields
+  cream: '#F4EFE3',
+  dark: '#2E2E2E',         // charcoal text
+  gray: '#6E685D',         // muted charcoal
+  lightGray: '#DAD2C2',    // borders / tracks on cream
+  mediumGray: '#9C9486',
+  gold: '#C2A46F',         // champagne gold accent
+  goldBright: '#D4BC8A',   // lighter gold for numbers/labels on green
+  red: '#A6402E',          // restrained brick — errors / destructive only
+  orange: '#A6402E',
+  green: '#003B2F',
 };
 
 export const space = {
@@ -45,8 +49,12 @@ export const radius = {
 };
 
 export const font = {
+  // Formal copperplate script reserved for the "Aftertaste" wordmark.
+  script: "'Pinyon Script', cursive",
+  // Playfair Display for headings / restaurant names (elegant accent).
   brand: "'Playfair Display', serif",
-  sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  // Nunito for body / UI text — friendly, rounded, soft.
+  sans: "'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
 };
 
 export const shadow = {
@@ -57,12 +65,13 @@ export const shadow = {
 
 // Rating scale is 1-10 (per-facet and overall). These helpers are the single
 // source of truth for rating color/label so screens stop duplicating the logic.
+// Heat scale: brick (bad) -> antique bronze (meh) -> deep green (good).
+// Warm earth tones that harmonize with the gold; all dark enough for cream text.
 export function ratingColor(score) {
   if (score == null) return colors.mediumGray;
-  if (score <= 3) return colors.red;
-  if (score <= 5) return colors.orange;
-  if (score <= 7) return colors.gold;
-  return colors.brg;
+  if (score <= 3) return '#A6402E';  // brick
+  if (score <= 6) return '#8A6D34';  // antique bronze
+  return '#003B2F';                  // deep green
 }
 
 export function ratingLabel(score) {
