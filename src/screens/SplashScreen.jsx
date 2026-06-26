@@ -46,7 +46,7 @@ const styles = {
   },
   title: {
     fontFamily: font.script,
-    fontSize: '120px',
+    fontSize: '90px',
     fontWeight: 400,
     color: colors.white,
     letterSpacing: '1px',
