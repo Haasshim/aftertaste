@@ -6,7 +6,7 @@ const ALLOWED_ORIGINS = [
   "http://localhost:5173",
   "https://localhost", // Capacitor android (androidScheme: 'https')
   "capacitor://localhost",
-  "aftertaste-blush.vercel.app"
+  "aftertaste-d4wesalam-aftertaste.vercel.app"
   // "https://your-production-domain.com",
 ];
 
