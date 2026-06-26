@@ -6,6 +6,7 @@ import StampChip from '../components/StampChip';
 import Spinner from '../components/Spinner';
 import ErrorState from '../components/ErrorState';
 import OfflineBanner from '../components/OfflineBanner';
+import RatingSummary from '../components/RatingSummary';
 import { colors, font, radius, shadow, ratingColor, ratingLabel } from '../theme/theme';
 
 // All of the user's logs at one restaurant, grouped under date headings —
@@ -106,12 +107,7 @@ export default function RestaurantLogsScreen() {
                 >
                   <div style={styles.cardHead}>
                     <h3 style={styles.dishName}>{log.dishName}</h3>
-                    {log.overall != null && (
-                      <div style={{ ...styles.badge, background: ratingColor(log.overall) }}>
-                        <span style={styles.badgeNum}>{log.overall}</span>
-                        <span style={styles.badgeOf}>/10</span>
-                      </div>
-                    )}
+                    {log.overall != null && <RatingSummary log={log} variant="badge" />}
                   </div>
                   {log.overall != null && (
                     <p style={{ ...styles.verdict, color: ratingColor(log.overall) }}>{ratingLabel(log.overall)}</p>

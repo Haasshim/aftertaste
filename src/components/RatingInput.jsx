@@ -31,45 +31,51 @@ export function computeOverall(value, ratingType = '3facet') {
 
 const SCALE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-// Star rating, touch-first. Each star has two tap zones: tapping the left half
-// sets a half-star (X.5), the right half sets a full star (X). Tapping the same
-// value again clears it. No hover/right-click — works the same on phone & web.
+// Native per-log readout — shows the rating in the unit it was given, with NO
+// cross-type conversion. `value` is the editor state ({stars} / {score} /
+// facets). Returns { num, unit } e.g. { num: 4, unit: '/5' }.
+export function nativeReadout(value, ratingType) {
+  switch (ratingType) {
+    case 'stars_5': return { num: value?.stars ?? null, unit: '/5' };
+    case '100': return { num: value?.score ?? null, unit: '/100' };
+    case 'single_10': return { num: value?.score ?? null, unit: '/10' };
+    default: return { num: computeOverall(value, '3facet'), unit: '/10' };
+  }
+}
+
+// Same idea but for a saved log row (carries ratingType + ratingValue/overall).
+export function logReadout(log) {
+  switch (log?.ratingType) {
+    case 'stars_5': return { num: log.ratingValue ?? log.stars ?? null, unit: '/5' };
+    case '100': return { num: log.ratingValue ?? log.score ?? null, unit: '/100' };
+    case 'single_10': return { num: log.ratingValue ?? log.score ?? null, unit: '/10' };
+    default: return { num: log?.overall ?? log?.rating ?? null, unit: '/10' };
+  }
+}
+
+// Star rating, touch-first, WHOLE stars only (1-5, no halves). Tap a star to
+// set that rating; tap it again to clear. Works identically on phone & web.
 function StarRating({ value = 0, onChange }) {
   const stars = [1, 2, 3, 4, 5];
-  const c = value ? ratingColor(value * 2) : colors.lightGray;
-
-  const tap = (target) => onChange(value === target ? 0 : target);
-
   return (
     <div style={styles.starsContainer} role="group" aria-label="Star rating">
       {stars.map((star) => {
-        const fillPct = value >= star ? 100 : value >= star - 0.5 ? 50 : 0;
+        const filled = value >= star;
         return (
-          <div key={star} style={styles.starWrap}>
-            {/* gray track + clipped colored overlay = crisp half fill */}
-            <span aria-hidden="true" style={{ ...styles.starGlyph, color: colors.lightGray }}>★</span>
-            <span
-              aria-hidden="true"
-              style={{ ...styles.starGlyph, ...styles.starOverlay, color: c, width: `${fillPct}%` }}
-            >
-              ★
-            </span>
-            {/* transparent tap zones sit on top */}
-            <button
-              type="button"
-              className="press"
-              aria-label={`Rate ${star - 0.5} stars`}
-              onClick={() => tap(star - 0.5)}
-              style={{ ...styles.starZone, left: 0 }}
-            />
-            <button
-              type="button"
-              className="press"
-              aria-label={`Rate ${star} stars`}
-              onClick={() => tap(star)}
-              style={{ ...styles.starZone, right: 0 }}
-            />
-          </div>
+          <button
+            key={star}
+            type="button"
+            className="press"
+            aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+            aria-pressed={filled}
+            onClick={() => onChange(value === star ? 0 : star)}
+            style={{
+              ...styles.starBtn,
+              color: filled ? colors.gold : colors.lightGray,
+            }}
+          >
+            {filled ? '★' : '☆'}
+          </button>
         );
       })}
     </div>
@@ -115,15 +121,19 @@ export default function RatingInput({ value = {}, onChange, ratingType = '3facet
   const setFacet = (key, n) => onChange({ ...value, [key]: n });
   const setValue = (key, n) => onChange({ ...value, [key]: n });
 
+  // `overall` (normalized 0-10) drives only the color + qualitative label.
+  // The displayed NUMBER is always native to the chosen rating type.
+  const readout = nativeReadout(value, ratingType);
+
   return (
     <div role="group" aria-label="Dish rating">
-      {/* Overall readout */}
+      {/* Overall readout — shown in the rating's own unit, no conversion */}
       <div style={styles.overallRow}>
-        <div key={overall} className="pop-in" style={{ ...styles.overallBadge, borderColor: ratingColor(overall) }}>
+        <div key={readout.num} className="pop-in" style={{ ...styles.overallBadge, borderColor: ratingColor(overall) }}>
           <span style={{ ...styles.overallNum, color: ratingColor(overall) }}>
-            {overall ?? '–'}
+            {readout.num ?? '–'}
           </span>
-          <span style={styles.overallOf}>/10</span>
+          <span style={styles.overallOf}>{readout.unit}</span>
         </div>
         <div>
           <p style={styles.overallLabelSmall}>Overall</p>
@@ -222,7 +232,7 @@ export default function RatingInput({ value = {}, onChange, ratingType = '3facet
           </div>
           <div style={styles.starInputContainer}>
             <StarRating value={value.stars} onChange={(stars) => setValue('stars', stars)} />
-            <span style={styles.starHint}>Tap a star's left half for a ½ rating</span>
+            <span style={styles.starHint}>Tap a star to rate. Tap it again to clear.</span>
           </div>
         </div>
       )}
@@ -305,41 +315,25 @@ const styles = {
     padding: 0,
     touchAction: 'manipulation',
   },
-  // --- 5-star (split-tap) ---
+  // --- 5-star (whole stars) ---
   starsContainer: {
     display: 'flex',
-    gap: '6px',
+    gap: '4px',
     alignItems: 'center',
     marginBottom: '4px',
   },
-  starWrap: {
-    position: 'relative',
+  starBtn: {
     width: '52px',
     height: '52px',
     flexShrink: 0,
-  },
-  starGlyph: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    fontSize: '50px',
-    lineHeight: '52px',
-    userSelect: 'none',
-  },
-  starOverlay: {
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-  },
-  starZone: {
-    position: 'absolute',
-    top: 0,
-    height: '100%',
-    width: '50%',
-    background: 'transparent',
+    background: 'none',
     border: 'none',
     padding: 0,
+    fontSize: '46px',
+    lineHeight: '52px',
     cursor: 'pointer',
     touchAction: 'manipulation',
+    userSelect: 'none',
   },
   starInputContainer: {
     display: 'flex',

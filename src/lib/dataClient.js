@@ -47,6 +47,8 @@ function rowToLog(row, attachments = []) {
     taste: row.rating_taste,
     ambience: row.rating_ambience,
     service: row.rating_service,
+    ratingType: row.rating_type || '3facet',
+    ratingValue: row.rating_value != null ? Number(row.rating_value) : null,
     overall: row.rating_overall != null ? Math.round(Number(row.rating_overall)) : row.rating_legacy ?? null,
     comment: row.comment,
     stamps: row.stamps || [],

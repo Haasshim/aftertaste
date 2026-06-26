@@ -1,33 +1,39 @@
 import React from 'react';
 import { colors, ratingColor, ratingLabel } from '../theme/theme';
-import { RATING_FACETS } from './RatingInput';
+import { RATING_FACETS, logReadout } from './RatingInput';
 
 // Read-only rating display.
 //  variant="badge"   -> compact overall pill (HomeScreen cards)
 //  variant="detail"  -> large circle + per-facet breakdown (DishDetailScreen)
-// `log` may carry facet fields (taste/value/...) and/or `overall`.
+// The NUMBER is shown in the log's own unit (stars /5, /10, or /100) — no
+// cross-type conversion. `overall` (normalized 0-10) only drives color/label.
 export default function RatingSummary({ log, variant = 'badge' }) {
   const overall = log.overall ?? log.rating ?? null; // rating = legacy single score
   const c = ratingColor(overall);
+  const { num, unit } = logReadout(log);
 
   if (variant === 'badge') {
     return (
       <div style={{ ...styles.badge, background: c }}>
-        <span style={styles.badgeNum}>{overall ?? '–'}</span>
-        <span style={styles.badgeOf}>/10</span>
+        <span style={styles.badgeNum}>{num ?? '–'}</span>
+        <span style={styles.badgeOf}>{unit}</span>
       </div>
     );
   }
 
-  const facets = RATING_FACETS.map((f) => ({ ...f, score: log[f.key] })).filter(
-    (f) => f.score != null && f.score > 0
-  );
+  // Per-facet bars only make sense for the 3-facet type.
+  const facets =
+    (log.ratingType ?? '3facet') === '3facet'
+      ? RATING_FACETS.map((f) => ({ ...f, score: log[f.key] })).filter(
+          (f) => f.score != null && f.score > 0
+        )
+      : [];
 
   return (
     <div style={styles.detailWrap}>
       <div style={{ ...styles.circle, borderColor: c }}>
-        <span style={{ ...styles.circleNum, color: c }}>{overall ?? '–'}</span>
-        <span style={styles.circleOf}>/10</span>
+        <span style={{ ...styles.circleNum, color: c }}>{num ?? '–'}</span>
+        <span style={styles.circleOf}>{unit}</span>
       </div>
       <p style={{ ...styles.circleLabel, color: colors.goldBright }}>{ratingLabel(overall)}</p>
 

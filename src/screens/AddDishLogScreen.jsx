@@ -143,6 +143,7 @@ export default function AddDishLogScreen() {
         dishName: dish.name,
         dishCategory: dish.category,
         ratingType,
+        overall, // normalized 0-10, used only for cross-type averaging
         comment,
         stamps: selectedStamps,
         photos,
@@ -150,17 +151,21 @@ export default function AddDishLogScreen() {
         links,
       };
 
-      // Add rating data based on type
+      // Add rating data based on type. `ratingValue` is the native value so the
+      // log displays in its own unit; facet fields stay separate for 3facet.
       if (ratingType === '3facet') {
         payload.taste = facets.taste;
         payload.ambience = facets.ambience;
         payload.service = facets.service;
       } else if (ratingType === 'single_10') {
         payload.score = facets.score;
+        payload.ratingValue = facets.score;
       } else if (ratingType === 'stars_5') {
         payload.stars = facets.stars;
+        payload.ratingValue = facets.stars;
       } else if (ratingType === '100') {
         payload.score = facets.score;
+        payload.ratingValue = facets.score;
       }
 
       await saveDishLog(payload);
