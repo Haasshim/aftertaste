@@ -27,6 +27,16 @@
   padding: 0;
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+  /* App feel: no double-tap zoom / 300ms delay, no long-press text selection. */
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Real input is still selectable/editable. */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 body {
@@ -40,6 +50,9 @@ body {
   align-items: flex-start;
   min-height: 100vh;
   overflow: hidden;
+  /* Stop the rubber-band / pull-to-refresh bounce that feels webby. */
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
 }
 
 #root {
@@ -116,10 +129,6 @@ button {
 .card-pop {
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.card-pop:hover {
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 10px 26px rgba(15, 42, 36, 0.22), 0 0 0 1px rgba(194, 164, 111, 0.6);
-}
 .card-pop:active {
   transform: translateY(0) scale(0.985);
 }
@@ -127,15 +136,24 @@ button {
 .press {
   transition: transform 0.12s ease, filter 0.12s ease;
 }
-.press:hover { filter: brightness(1.08); }
 .press:active { transform: scale(0.94); }
 
 .fab-fun {
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.fab-fun:hover {
-  animation: wiggle 0.4s ease;
-  box-shadow: 0 8px 26px rgba(15, 42, 36, 0.45), 0 0 0 3px rgba(194, 164, 111, 0.65);
+
+/* Hover effects ONLY on devices with a real pointer (mouse). On touchscreens
+   :hover "sticks" after a tap and feels broken, so we gate it. */
+@media (hover: hover) and (pointer: fine) {
+  .card-pop:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 10px 26px rgba(15, 42, 36, 0.22), 0 0 0 1px rgba(194, 164, 111, 0.6);
+  }
+  .press:hover { filter: brightness(1.08); }
+  .fab-fun:hover {
+    animation: wiggle 0.4s ease;
+    box-shadow: 0 8px 26px rgba(15, 42, 36, 0.45), 0 0 0 3px rgba(194, 164, 111, 0.65);
+  }
 }
 
 /* A slow golden shimmer that sweeps across gilded elements. */

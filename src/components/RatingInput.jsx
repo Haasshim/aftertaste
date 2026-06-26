@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { colors, radius, ratingColor, ratingLabel } from '../theme/theme';
 
 // The three rating facets. `key` matches the dish_logs columns / save payload.
@@ -31,104 +31,73 @@ export function computeOverall(value, ratingType = '3facet') {
 
 const SCALE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-// Star rating component (for 5-star rating type)
+// Star rating, touch-first. Each star has two tap zones: tapping the left half
+// sets a half-star (X.5), the right half sets a full star (X). Tapping the same
+// value again clears it. No hover/right-click — works the same on phone & web.
 function StarRating({ value = 0, onChange }) {
   const stars = [1, 2, 3, 4, 5];
-  const displayValue = value ? Math.round(value * 2) / 2 : 0;
+  const c = value ? ratingColor(value * 2) : colors.lightGray;
+
+  const tap = (target) => onChange(value === target ? 0 : target);
 
   return (
-    <div style={styles.starsContainer}>
+    <div style={styles.starsContainer} role="group" aria-label="Star rating">
       {stars.map((star) => {
-        const isFilled = displayValue >= star;
-        const isHalfFilled = displayValue >= star - 0.5 && displayValue < star;
+        const fillPct = value >= star ? 100 : value >= star - 0.5 ? 50 : 0;
         return (
-          <button
-            key={star}
-            type="button"
-            className="press"
-            onClick={() => {
-              const newVal = value === star ? 0 : star;
-              onChange(newVal);
-            }}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              const newVal = value === star - 0.5 ? 0 : star - 0.5;
-              onChange(newVal);
-            }}
-            aria-label={`${displayValue} stars`}
-            style={{
-              ...styles.starBtn,
-              fontSize: '48px',
-              cursor: 'pointer',
-              background: 'none',
-              border: 'none',
-              padding: '4px 8px',
-              color: isFilled || isHalfFilled ? ratingColor(displayValue * 2) : colors.mediumGray,
-            }}
-          >
-            {isFilled ? '★' : isHalfFilled ? '⭐' : '☆'}
-          </button>
+          <div key={star} style={styles.starWrap}>
+            {/* gray track + clipped colored overlay = crisp half fill */}
+            <span aria-hidden="true" style={{ ...styles.starGlyph, color: colors.lightGray }}>★</span>
+            <span
+              aria-hidden="true"
+              style={{ ...styles.starGlyph, ...styles.starOverlay, color: c, width: `${fillPct}%` }}
+            >
+              ★
+            </span>
+            {/* transparent tap zones sit on top */}
+            <button
+              type="button"
+              className="press"
+              aria-label={`Rate ${star - 0.5} stars`}
+              onClick={() => tap(star - 0.5)}
+              style={{ ...styles.starZone, left: 0 }}
+            />
+            <button
+              type="button"
+              className="press"
+              aria-label={`Rate ${star} stars`}
+              onClick={() => tap(star)}
+              style={{ ...styles.starZone, right: 0 }}
+            />
+          </div>
         );
       })}
     </div>
   );
 }
 
-// Numeric input component (for 1-100 scale)
+// 0-100 rating, touch-first: a drag slider with a large live readout. Sliders
+// are the standard mobile control for a wide numeric range — no keyboard, no
+// modal, no precise tapping required.
 function NumericInput({ value = 0, max = 100, onChange }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [inputValue, setInputValue] = useState(String(value || ''));
-
-  const handleCommit = () => {
-    const num = parseInt(inputValue, 10);
-    if (!isNaN(num) && num >= 0 && num <= max) {
-      onChange(num);
-    } else {
-      setInputValue(String(value || ''));
-    }
-    setIsEditing(false);
-  };
-
-  if (isEditing) {
-    return (
+  const c = ratingColor(computeNormalized(value, max));
+  return (
+    <div style={styles.sliderBlock}>
+      <div style={{ ...styles.numericDisplay, color: c }}>
+        <span style={styles.numericValue}>{value || 0}</span>
+        <span style={styles.numericMax}>/{max}</span>
+      </div>
       <input
-        type="number"
+        type="range"
         min="0"
         max={max}
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onBlur={handleCommit}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') handleCommit();
-          if (e.key === 'Escape') {
-            setInputValue(String(value || ''));
-            setIsEditing(false);
-          }
-        }}
-        autoFocus
-        style={{
-          ...styles.numericInput,
-          borderColor: ratingColor(computeNormalized(value, max)),
-        }}
+        step="1"
+        value={value || 0}
+        onChange={(e) => onChange(Number(e.target.value))}
+        aria-label={`Rating out of ${max}`}
+        style={{ ...styles.slider, accentColor: c }}
       />
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        setIsEditing(true);
-        setInputValue(String(value || ''));
-      }}
-      style={{
-        ...styles.numericDisplay,
-        color: ratingColor(computeNormalized(value, max)),
-      }}
-    >
-      <span style={styles.numericValue}>{value || '–'}</span>
-      <span style={styles.numericMax}>/{max}</span>
-    </button>
+    </div>
   );
 }
 
@@ -253,7 +222,7 @@ export default function RatingInput({ value = {}, onChange, ratingType = '3facet
           </div>
           <div style={styles.starInputContainer}>
             <StarRating value={value.stars} onChange={(stars) => setValue('stars', stars)} />
-            <span style={styles.starHint}>Right-click for half stars</span>
+            <span style={styles.starHint}>Tap a star's left half for a ½ rating</span>
           </div>
         </div>
       )}
@@ -268,7 +237,7 @@ export default function RatingInput({ value = {}, onChange, ratingType = '3facet
           </div>
           <div style={styles.numericContainer}>
             <NumericInput value={value.score} max={100} onChange={(score) => setValue('score', score)} />
-            <span style={styles.numericHint}>Click to edit</span>
+            <span style={styles.numericHint}>Drag to set your score</span>
           </div>
         </div>
       )}
@@ -323,10 +292,10 @@ const styles = {
   scaleBtn: {
     flex: 1,
     minWidth: 0,
-    height: '36px',
+    height: '44px', // iOS/Android minimum touch target
     borderRadius: radius.sm,
     border: 'none',
-    fontSize: '14px',
+    fontSize: '15px',
     fontWeight: 700,
     cursor: 'pointer',
     display: 'flex',
@@ -334,15 +303,43 @@ const styles = {
     justifyContent: 'center',
     transition: 'background 0.12s, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)',
     padding: 0,
+    touchAction: 'manipulation',
   },
+  // --- 5-star (split-tap) ---
   starsContainer: {
     display: 'flex',
-    gap: '8px',
+    gap: '6px',
     alignItems: 'center',
-    marginBottom: '8px',
+    marginBottom: '4px',
   },
-  starBtn: {
-    lineHeight: 1,
+  starWrap: {
+    position: 'relative',
+    width: '52px',
+    height: '52px',
+    flexShrink: 0,
+  },
+  starGlyph: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    fontSize: '50px',
+    lineHeight: '52px',
+    userSelect: 'none',
+  },
+  starOverlay: {
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+  },
+  starZone: {
+    position: 'absolute',
+    top: 0,
+    height: '100%',
+    width: '50%',
+    background: 'transparent',
+    border: 'none',
+    padding: 0,
+    cursor: 'pointer',
+    touchAction: 'manipulation',
   },
   starInputContainer: {
     display: 'flex',
@@ -354,39 +351,37 @@ const styles = {
     color: colors.mediumGray,
     fontStyle: 'italic',
   },
+  // --- 0-100 slider ---
   numericContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '10px',
+  },
+  sliderBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
   },
   numericDisplay: {
     display: 'inline-flex',
     alignItems: 'baseline',
     gap: '4px',
-    padding: '12px 16px',
-    borderRadius: radius.sm,
-    border: 'none',
-    background: colors.offWhite,
-    cursor: 'pointer',
-    transition: 'background 0.12s',
   },
   numericValue: {
-    fontSize: '28px',
-    fontWeight: 700,
+    fontSize: '40px',
+    fontWeight: 800,
+    lineHeight: 1,
   },
   numericMax: {
-    fontSize: '14px',
+    fontSize: '16px',
     color: colors.mediumGray,
     fontWeight: 600,
   },
-  numericInput: {
+  slider: {
     width: '100%',
-    maxWidth: '120px',
-    padding: '12px 16px',
-    borderRadius: radius.sm,
-    border: '2px solid',
-    fontSize: '16px',
-    fontWeight: 700,
+    height: '36px', // tall hit area for the thumb
+    cursor: 'pointer',
+    touchAction: 'none', // let the slider own horizontal drags
   },
   numericHint: {
     fontSize: '12px',
