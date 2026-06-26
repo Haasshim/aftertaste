@@ -10,7 +10,7 @@ import OfflineBanner from '../components/OfflineBanner';
 import { colors, font, radius, shadow, space, ratingColor, ratingLabel } from '../theme/theme';
 
 const RATING_TYPES = {
-  '3facet': '3-Faceted (Taste, Ambience, Service)',
+  '3facet': 'Multiple Factors (Taste, Ambience, Service)',
   'single_10': 'Single Rating (1-10)',
   'stars_5': '5 Stars',
   '100': 'Out of 100',
@@ -357,14 +357,15 @@ const styles = {
     background: 'rgba(0, 0, 0, 0.5)',
     display: 'flex',
     alignItems: 'flex-end',
+    justifyContent: 'center', // keep the sheet within the phone-frame width
     zIndex: 100,
   },
   modal: {
     background: colors.white,
     borderRadius: '20px 20px 0 0',
     width: '100%',
-    maxWidth: '100%',
-    maxHeight: '80vh',
+    maxWidth: '430px', // match #root so it doesn't span a wide desktop window
+    maxHeight: '80dvh',
     overflow: 'auto',
     boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.15)',
   },

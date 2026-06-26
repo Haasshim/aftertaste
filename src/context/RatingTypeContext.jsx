@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const RatingTypeContext = createContext();
 
 const RATING_TYPES = {
-  '3facet': '3-Faceted (Taste, Ambience, Service)',
+  '3facet': 'Multiple Factors (Taste, Ambience, Service)',
   'single_10': 'Single Rating (1-10)',
   'stars_5': '5 Stars',
   '100': 'Out of 100',
