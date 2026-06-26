@@ -378,7 +378,7 @@ export default function AddDishLogScreen() {
 }
 
 const styles = {
-  container: { height: '100vh', display: 'flex', flexDirection: 'column', background: colors.offWhite },
+  container: { height: 'var(--app-h)', display: 'flex', flexDirection: 'column', background: colors.offWhite },
   header: {
     background: colors.brg,
     padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px',

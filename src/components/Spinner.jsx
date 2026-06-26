@@ -24,7 +24,7 @@ export function FullScreenSpinner({ label }) {
   return (
     <div
       style={{
-        height: '100vh',
+        height: 'var(--app-h)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

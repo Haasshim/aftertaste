@@ -128,7 +128,7 @@ export default function SignupScreen() {
 }
 
 const styles = {
-  container: { height: '100vh', display: 'flex', flexDirection: 'column', background: colors.cream, overflow: 'auto' },
+  container: { height: 'var(--app-h)', display: 'flex', flexDirection: 'column', background: colors.cream, overflow: 'auto' },
   topSection: {
     background: `linear-gradient(160deg, ${colors.brg} 0%, ${colors.brgDeep} 100%)`,
     padding: 'calc(env(safe-area-inset-top, 0px) + 60px) 24px 40px',

@@ -152,7 +152,7 @@ export default function RestaurantLogsScreen() {
 }
 
 const styles = {
-  container: { height: '100vh', display: 'flex', flexDirection: 'column', background: colors.redBlush },
+  container: { height: 'var(--app-h)', display: 'flex', flexDirection: 'column', background: colors.redBlush },
   header: {
     background: `linear-gradient(135deg, ${colors.brg} 0%, ${colors.brgDeep} 100%)`,
     padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px',

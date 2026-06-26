@@ -41,7 +41,7 @@ const styles = {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    height: '100vh',
+    height: 'var(--app-h)',
     background: colors.brg,
   },
   title: {

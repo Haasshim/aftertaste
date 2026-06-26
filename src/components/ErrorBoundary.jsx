@@ -23,7 +23,7 @@ export default class ErrorBoundary extends React.Component {
     return (
       <div
         style={{
-          height: '100vh',
+          height: 'var(--app-h)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

@@ -395,6 +395,7 @@ const styles = {
   },
   modalBody: {
     padding: '20px',
+    paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))',
   },
   settingLabel: {
     fontSize: '14px',

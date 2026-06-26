@@ -3,7 +3,7 @@
 import { colors, space, radius, font, shadow } from './theme';
 
 export const screenContainer = {
-  height: '100vh',
+  height: 'var(--app-h)',
   display: 'flex',
   flexDirection: 'column',
   background: colors.offWhite,
