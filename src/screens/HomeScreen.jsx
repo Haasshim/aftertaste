@@ -1,12 +1,20 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useRatingType } from '../context/RatingTypeContext';
 import { getDishLogs } from '../lib/dataClient';
 import Icon from '../components/Icon';
 import Spinner from '../components/Spinner';
 import ErrorState from '../components/ErrorState';
 import OfflineBanner from '../components/OfflineBanner';
 import { colors, font, radius, shadow, space, ratingColor, ratingLabel } from '../theme/theme';
+
+const RATING_TYPES = {
+  '3facet': '3-Faceted (Taste, Ambience, Service)',
+  'single_10': 'Single Rating (1-10)',
+  'stars_5': '5 Stars',
+  '100': 'Out of 100',
+};
 
 // Group flat logs into one card per restaurant, newest activity first.
 function groupByRestaurant(logs) {
@@ -33,9 +41,11 @@ export default function HomeScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
+  const { ratingType, setRatingType, ratingTypeLabel } = useRatingType();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   const loadLogs = useCallback(async () => {
     setLoading(true);
@@ -80,7 +90,15 @@ export default function HomeScreen() {
           </div>
           <button
             className="press"
-            style={styles.signOutBtn}
+            style={styles.iconBtn}
+            aria-label="Settings"
+            onClick={() => setShowSettings(true)}
+          >
+            <Icon name="settings" size={18} color="rgba(255,255,255,0.85)" />
+          </button>
+          <button
+            className="press"
+            style={styles.iconBtn}
             aria-label="Sign out"
             onClick={async () => { await signOut(); navigate('/login', { replace: true }); }}
           >
@@ -144,6 +162,48 @@ export default function HomeScreen() {
       <button className="fab-fun" style={styles.fab} aria-label="Log a dish" onClick={() => navigate('/search')}>
         <Icon name="plus" size={30} color={colors.white} strokeWidth={2.5} />
       </button>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div style={styles.modalOverlay} onClick={() => setShowSettings(false)}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h2 style={styles.modalTitle}>Rating Preferences</h2>
+              <button
+                style={styles.closeBtn}
+                aria-label="Close"
+                onClick={() => setShowSettings(false)}
+              >
+                <Icon name="x" size={24} color={colors.dark} />
+              </button>
+            </div>
+
+            <div style={styles.modalBody}>
+              <p style={styles.settingLabel}>Choose your default rating type:</p>
+              <div style={styles.ratingTypeList}>
+                {Object.entries(RATING_TYPES).map(([key, label]) => (
+                  <button
+                    key={key}
+                    style={{
+                      ...styles.ratingTypeBtn,
+                      background: ratingType === key ? colors.gold : colors.offWhite,
+                      borderColor: ratingType === key ? colors.gold : colors.lightGray,
+                      color: ratingType === key ? colors.racingRedDeep : colors.dark,
+                    }}
+                    onClick={() => {
+                      setRatingType(key);
+                      setShowSettings(false);
+                    }}
+                  >
+                    {label}
+                    {ratingType === key && <span style={styles.checkmark}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -287,5 +347,94 @@ const styles = {
     boxShadow: '0 6px 18px rgba(15,42,36,0.45)',
     cursor: 'pointer',
     zIndex: 10,
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'flex-end',
+    zIndex: 100,
+  },
+  modal: {
+    background: colors.white,
+    borderRadius: '20px 20px 0 0',
+    width: '100%',
+    maxWidth: '100%',
+    maxHeight: '80vh',
+    overflow: 'auto',
+    boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.15)',
+  },
+  modalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '20px',
+    borderBottom: `1px solid ${colors.lightGray}`,
+    position: 'sticky',
+    top: 0,
+    background: colors.white,
+  },
+  modalTitle: {
+    fontSize: '20px',
+    fontWeight: 700,
+    color: colors.dark,
+    margin: 0,
+  },
+  closeBtn: {
+    background: 'none',
+    border: 'none',
+    padding: '8px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBody: {
+    padding: '20px',
+  },
+  settingLabel: {
+    fontSize: '14px',
+    fontWeight: 600,
+    color: colors.dark,
+    marginBottom: '12px',
+    marginTop: 0,
+  },
+  ratingTypeList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  ratingTypeBtn: {
+    width: '100%',
+    padding: '12px 16px',
+    borderRadius: radius.sm,
+    border: '2px solid',
+    fontSize: '15px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.12s',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  checkmark: {
+    fontSize: '18px',
+    fontWeight: 700,
+  },
+  iconBtn: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '18px',
+    background: 'rgba(255,255,255,0.12)',
+    border: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 0,
+    cursor: 'pointer',
   },
 };

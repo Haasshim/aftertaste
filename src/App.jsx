@@ -1,6 +1,7 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { RatingTypeProvider } from './context/RatingTypeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import SplashScreen from './screens/SplashScreen';
 import LoginScreen from './screens/LoginScreen';
@@ -15,7 +16,8 @@ import RestaurantLogsScreen from './screens/RestaurantLogsScreen';
 export default function App() {
   return (
     <AuthProvider>
-      <HashRouter>
+      <RatingTypeProvider>
+        <HashRouter>
         <Routes>
           {/* Public */}
           <Route path="/" element={<SplashScreen />} />
@@ -33,6 +35,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </HashRouter>
+      </RatingTypeProvider>
     </AuthProvider>
   );
 }

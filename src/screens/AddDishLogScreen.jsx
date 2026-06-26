@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { STAMPS } from '../utils/constants';
 import { saveDishLog } from '../lib/dataClient';
 import { getRestaurant } from '../lib/places';
+import { useRatingType } from '../context/RatingTypeContext';
 import Icon from '../components/Icon';
 import RatingInput, { computeOverall } from '../components/RatingInput';
 import Spinner, { FullScreenSpinner } from '../components/Spinner';
@@ -13,6 +14,7 @@ export default function AddDishLogScreen() {
   const { restaurantId, dishId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { ratingType, ratingTypeLabel } = useRatingType();
   const [restaurant, setRestaurant] = useState(null);
   const [resolving, setResolving] = useState(true);
 
@@ -124,7 +126,7 @@ export default function AddDishLogScreen() {
   const toggleStamp = (id) =>
     setSelectedStamps((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
 
-  const overall = computeOverall(facets);
+  const overall = computeOverall(facets, ratingType);
 
   const handleSave = async () => {
     if (overall == null) {
@@ -134,22 +136,34 @@ export default function AddDishLogScreen() {
     setFormError('');
     setSaving(true);
     try {
-      await saveDishLog({
+      const payload = {
         restaurantId: restaurant.id,
         restaurantName: restaurant.name,
         dishId: dish.id,
         dishName: dish.name,
         dishCategory: dish.category,
-        taste: facets.taste,
-        ambience: facets.ambience,
-        service: facets.service,
-        overall,
+        ratingType,
         comment,
         stamps: selectedStamps,
         photos,
         voiceClips,
         links,
-      });
+      };
+
+      // Add rating data based on type
+      if (ratingType === '3facet') {
+        payload.taste = facets.taste;
+        payload.ambience = facets.ambience;
+        payload.service = facets.service;
+      } else if (ratingType === 'single_10') {
+        payload.score = facets.score;
+      } else if (ratingType === 'stars_5') {
+        payload.stars = facets.stars;
+      } else if (ratingType === '100') {
+        payload.score = facets.score;
+      }
+
+      await saveDishLog(payload);
       navigate('/home');
     } catch (e) {
       setFormError(e?.message || 'Could not save your log. Please try again.');
@@ -191,9 +205,9 @@ export default function AddDishLogScreen() {
         {/* Rating */}
         <div style={styles.section}>
           <h3 style={styles.sectionTitle}>Your Rating</h3>
-          <p style={styles.sectionSub}>Rate each aspect — the overall is the average</p>
+          <p style={styles.sectionSub}>{ratingTypeLabel}</p>
           <div style={{ marginTop: '12px' }}>
-            <RatingInput value={facets} onChange={(f) => { setFacets(f); setFormError(''); }} />
+            <RatingInput value={facets} onChange={(f) => { setFacets(f); setFormError(''); }} ratingType={ratingType} />
           </div>
         </div>
 

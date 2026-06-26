@@ -113,26 +113,38 @@ export async function saveDishLog(log) {
     withTimeout(
       (async () => {
         const userId = await currentUserId();
-        const overall = computeOverall(log) ?? log.rating ?? null;
+        const ratingType = log.ratingType || '3facet';
+        const overall = computeOverall(log, ratingType) ?? log.rating ?? null;
+
+        const insertData = {
+          user_id: userId,
+          restaurant_id: log.restaurantId,
+          restaurant_name: log.restaurantName,
+          dish_id: log.dishId,
+          dish_name: log.dishName,
+          dish_category: log.dishCategory,
+          source: log.source || 'manual',
+          rating_type: ratingType,
+          comment: log.comment || null,
+          stamps: log.stamps || [],
+          links: log.links || [],
+          logged_at: log.date || new Date().toISOString(),
+        };
+
+        // Add rating data based on type
+        if (ratingType === '3facet') {
+          insertData.rating_taste = log.taste ?? null;
+          insertData.rating_ambience = log.ambience ?? null;
+          insertData.rating_service = log.service ?? null;
+        } else if (ratingType === 'single_10' || ratingType === '100') {
+          insertData.rating_value = log.score ?? null;
+        } else if (ratingType === 'stars_5') {
+          insertData.rating_value = log.stars ?? null;
+        }
 
         const { data: inserted, error } = await supabase
           .from('dish_logs')
-          .insert({
-            user_id: userId,
-            restaurant_id: log.restaurantId,
-            restaurant_name: log.restaurantName,
-            dish_id: log.dishId,
-            dish_name: log.dishName,
-            dish_category: log.dishCategory,
-            source: log.source || 'manual',
-            rating_taste: log.taste ?? null,
-            rating_ambience: log.ambience ?? null,
-            rating_service: log.service ?? null,
-            comment: log.comment || null,
-            stamps: log.stamps || [],
-            links: log.links || [],
-            logged_at: log.date || new Date().toISOString(),
-          })
+          .insert(insertData)
           .select()
           .single();
         if (error) throw error;
