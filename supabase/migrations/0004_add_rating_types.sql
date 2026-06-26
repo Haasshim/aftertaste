@@ -26,8 +26,8 @@ add column rating_overall numeric(3,1) generated always as (
       -- Single 1-10 rating stored as-is
       rating_value
     when rating_type = 'stars_5' then
-      -- 5-star (1.0-5.0) normalized to 0-10: (value - 1) * 2
-      round(((rating_value - 1) * 2)::numeric, 1)
+      -- 5-star (1.0-5.0) normalized to 0-10: value * 2 (5 stars = 10, 4.5 = 9)
+      round((rating_value * 2)::numeric, 1)
     when rating_type = '100' then
       -- Out of 100 normalized to 0-10: value / 10
       round((rating_value / 10)::numeric, 1)

@@ -20,8 +20,8 @@ export function computeOverall(value, ratingType = '3facet') {
   } else if (ratingType === 'stars_5') {
     const stars = value?.stars;
     if (!stars) return null;
-    // Normalize 1-5 to 0-10: (value - 1) * 2
-    return Math.round((stars - 1) * 2);
+    // Normalize 5-star scale to 0-10: stars * 2 (5 stars = 10, 4.5 = 9)
+    return Math.round(stars * 2);
   } else if (ratingType === '100') {
     const score = value?.score;
     return score ? Math.round(score / 10) : null;
